@@ -46,194 +46,194 @@ namespace ParalutionWrappers
    * The interface of this class is modeled after the existing Vector class in
    * deal.II. It has almost the same member functions, and is often
    * exchangeable. However, Paralution LocalVector only supports int, float,
-   * and double. 
+   * and double.
    *
    * @ingroup ParalutionWrappers
    * @ingroup Vectors
    * @author Bruno Turcksin, 2013
    */
   //TODO: lots of functions are missing
-  template <typename Number> 
+  template <typename Number>
   class Vector : public Subscriptor
   {
-    public : 
-      /**
-       * Declare some the standard types used in all containers. These types
-       * parallel those in the <tt>C</tt> standard libraries
-       * <tt>vector<...></tt> class.
-       */
-      typedef dealii::types::global_dof_index size_type;
-      typedef Number*                         iterator;
-      typedef const Number*                   const_iterator;
+  public :
+    /**
+     * Declare some the standard types used in all containers. These types
+     * parallel those in the <tt>C</tt> standard libraries
+     * <tt>vector<...></tt> class.
+     */
+    typedef dealii::types::global_dof_index size_type;
+    typedef Number                         *iterator;
+    typedef const Number                   *const_iterator;
 
-      /**
-       * @name 1: Basic Object-handling
-       */
-      //@{
+    /**
+     * @name 1: Basic Object-handling
+     */
+    //@{
 
-      /**
-       * Default constructor that generates and empy (zero size) vector. The
-       * function <tt>reinit()</tt> will have to give the vector the correct
-       * size.
-       */
-      Vector();                 
+    /**
+     * Default constructor that generates and empy (zero size) vector. The
+     * function <tt>reinit()</tt> will have to give the vector the correct
+     * size.
+     */
+    Vector();
 
-      /**
-       * Copy constructor. Sets the dimension to that of the given vector, and
-       * copies all the elements. The copied vector stays on the host/device
-       * where it is create.
-       */
-      //TODO: Look to use choose between CopyFrom and Clone. Difference between 
-      //copy and clone: copy the vector stays on his host/device, with clone 
-      //the vector goes on the same host/device.
-      Vector(const Vector<Number> &v);
-      
-      /**
-       * Constructor. Set dimensionto @p n and initialize all the elements
-       * with zero.
-       *
-       * The constructor is made explicit to avoid accidents like this:
-       * <tt>v=0;</tt>. Presumably, the user want to set every element of the
-       * vector to zero, but instead, what happens is this call:
-       * <tt>v=Vector@<Number@>(0);</tt>, i.e. the vector is replaced by one
-       * length zero.
-       */
-      explicit Vector(const size_type n);
+    /**
+     * Copy constructor. Sets the dimension to that of the given vector, and
+     * copies all the elements. The copied vector stays on the host/device
+     * where it is create.
+     */
+    //TODO: Look to use choose between CopyFrom and Clone. Difference between
+    //copy and clone: copy the vector stays on his host/device, with clone
+    //the vector goes on the same host/device.
+    Vector(const Vector<Number> &v);
 
-      /**
-       * Initialize the vector with a given range of values pointed to by the
-       * iterators. This function is there in anlogy to the @p std::vector
-       * class.
-       */
-      //TODO
-     // template <typename InputIterator>
-     // Vector (const InputIterator first,
-     //         const InputIterator last);
+    /**
+     * Constructor. Set dimensionto @p n and initialize all the elements
+     * with zero.
+     *
+     * The constructor is made explicit to avoid accidents like this:
+     * <tt>v=0;</tt>. Presumably, the user want to set every element of the
+     * vector to zero, but instead, what happens is this call:
+     * <tt>v=Vector@<Number@>(0);</tt>, i.e. the vector is replaced by one
+     * length zero.
+     */
+    explicit Vector(const size_type n);
 
-      /**
-       * Destructor.
-       */
-      ~Vector();
+    /**
+     * Initialize the vector with a given range of values pointed to by the
+     * iterators. This function is there in anlogy to the @p std::vector
+     * class.
+     */
+    //TODO
+    // template <typename InputIterator>
+    // Vector (const InputIterator first,
+    //         const InputIterator last);
 
-      /**
-       * Change the dimension of the vector to @p N. The vector is filled with
-       * zeros.
-       */
-      //TODO look to add fast
-      void reinit(const size_type N);
+    /**
+     * Destructor.
+     */
+    ~Vector();
 
-      /**
-       * Return dimension of the vector.
-       */
-      std::size_t size() const;
+    /**
+     * Change the dimension of the vector to @p N. The vector is filled with
+     * zeros.
+     */
+    //TODO look to add fast
+    void reinit(const size_type N);
 
-      /**
-       * Make the @p Vector class a bit loke the <tt>vector<></tt> class of
-       * the C++ standard library by returning iterators to the strat and end
-       * of the elements of this vector. The iterator is created on the host
-       * or the device and cannot be moved.
-       */
-      iterator begin();
+    /**
+     * Return dimension of the vector.
+     */
+    std::size_t size() const;
 
-      /**
-       * Return constant iterator to the start of the vectors. The iterator is
-       * created on the host of the device and cannot be moved.
-       */
-      const_iterator begin() const;
+    /**
+     * Make the @p Vector class a bit loke the <tt>vector<></tt> class of
+     * the C++ standard library by returning iterators to the strat and end
+     * of the elements of this vector. The iterator is created on the host
+     * or the device and cannot be moved.
+     */
+    iterator begin();
 
-      /**
-       * Return an iterator pointing to the element past the end of the array.
-       * The iterator is created on the host or the device and cannot be
-       * moved.
-       */
-      iterator end();
+    /**
+     * Return constant iterator to the start of the vectors. The iterator is
+     * created on the host of the device and cannot be moved.
+     */
+    const_iterator begin() const;
 
-      /**
-       * Return a constant iterator pointing to the element past the end of
-       * the array. The iterator is created on the host or the device and
-       * cannot be moved.
-       */
-      const_iterator end() const;
-      //@}
+    /**
+     * Return an iterator pointing to the element past the end of the array.
+     * The iterator is created on the host or the device and cannot be
+     * moved.
+     */
+    iterator end();
 
-      /**
-       * @name 2: Data-Acess
-       */
-      //@{
-      /**
-       * Access the value of the @p ith component. Works only on the host.
-       */
-      Number operator() (const size_type i) const;
+    /**
+     * Return a constant iterator pointing to the element past the end of
+     * the array. The iterator is created on the host or the device and
+     * cannot be moved.
+     */
+    const_iterator end() const;
+    //@}
 
-      /**
-       * Access the @p ith component as writeable reference. Works only on the
-       * host.
-       */
-      Number& operator() (const size_type i);
+    /**
+     * @name 2: Data-Acess
+     */
+    //@{
+    /**
+     * Access the value of the @p ith component. Works only on the host.
+     */
+    Number operator() (const size_type i) const;
 
-      /**
-       * Access the value of the @p ith component. Works only on the host.
-       *
-       * Exactly the same as operator().
-       */
-      Number operator[] (const size_type i) const;
+    /**
+     * Access the @p ith component as writeable reference. Works only on the
+     * host.
+     */
+    Number &operator() (const size_type i);
 
-      /**
-       * Access the @p ith component as a writeable reference.
-       *
-       * Exactly thte asame as operator().
-       */
-      Number& operator[] (const size_type i);
+    /**
+     * Access the value of the @p ith component. Works only on the host.
+     *
+     * Exactly the same as operator().
+     */
+    Number operator[] (const size_type i) const;
 
-      /**
-       * Return a constant reference to the underlying Paralution LocalVector
-       * class.
-       */
-      const paralution::LocalVector<Number>& paralution_vector() const;
+    /**
+     * Access the @p ith component as a writeable reference.
+     *
+     * Exactly thte asame as operator().
+     */
+    Number &operator[] (const size_type i);
 
-      /**
-       * Return a (modifyable) reference to the underlying Paralution
-       * LocalVector class.
-       */
-      paralution::LocalVector<Number>& paralution_vector();
-      //@}
+    /**
+     * Return a constant reference to the underlying Paralution LocalVector
+     * class.
+     */
+    const paralution::LocalVector<Number>& paralution_vector() const;
 
-      /**
-       * @name 3: Modification of vectors
-       */
-      //@{
-      /**
-       * Add the given vector to the present one.
-       */
-      Vector<Number>& operator+= (const Vector<Number> &v);
+    /**
+     * Return a (modifyable) reference to the underlying Paralution
+     * LocalVector class.
+     */
+    paralution::LocalVector<Number>& paralution_vector();
+    //@}
 
-      /**
-       * Substract the given vector from the present one.
-       */
-      Vector<Number>& operator-= (const Vector<Number> &v);
+    /**
+     * @name 3: Modification of vectors
+     */
+    //@{
+    /**
+     * Add the given vector to the present one.
+     */
+    Vector<Number>& operator+= (const Vector<Number> &v);
 
-      /**
-       * Addition of @p s to all components. Note that @p s is a scalar and
-       * not a vector.
-       */
-      void add(const Number s);
+    /**
+     * Substract the given vector from the present one.
+     */
+    Vector<Number>& operator-= (const Vector<Number> &v);
 
-      /**
-       * Scale each element of the vector by a constant value.
-       */
-      Vector<Number>& operator*= (const Number factor);
+    /**
+     * Addition of @p s to all components. Note that @p s is a scalar and
+     * not a vector.
+     */
+    void add(const Number s);
 
-      /**
-       * Scale each element of the vector by the inverse of the given value.
-       */
-      Vector<Number>& operator/= (const Number factor);
-      //@}
+    /**
+     * Scale each element of the vector by a constant value.
+     */
+    Vector<Number>& operator*= (const Number factor);
 
-    private :
-      /**
-       * Underlying Paralution LocalVector<Number>.
-       */ 
-      paralution::LocalVector<Number> local_vector;
+    /**
+     * Scale each element of the vector by the inverse of the given value.
+     */
+    Vector<Number>& operator/= (const Number factor);
+    //@}
+
+  private :
+    /**
+     * Underlying Paralution LocalVector<Number>.
+     */
+    paralution::LocalVector<Number> local_vector;
   };
 
 
@@ -247,7 +247,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>::Vector(const Vector <Number> &v) 
+  inline Vector<Number>::Vector(const Vector <Number> &v)
   {
     local_vector.CopyFrom(v.paralution_vector());
   }
@@ -255,7 +255,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>::Vector(const size_type n) 
+  inline Vector<Number>::Vector(const size_type n)
   {
     local_vector.Allocate("deal_ii_vector",n);
   }
@@ -269,7 +269,7 @@ namespace ParalutionWrappers
   }
 
 
-      
+
   template <typename Number>
   void Vector<Number>::reinit(const size_type n)
   {
@@ -330,7 +330,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Number& Vector<Number>::operator() (const size_type i)
+  inline Number &Vector<Number>::operator() (const size_type i)
   {
     AssertIndexRange(i,static_cast<size_type>(local_vector.get_size()));
 
@@ -346,21 +346,21 @@ namespace ParalutionWrappers
 
     return local_vector[i];
   }
-  
+
 
 
   template <typename Number>
-  inline Number& Vector<Number>::operator[] (const size_type i)
+  inline Number &Vector<Number>::operator[] (const size_type i)
   {
     AssertIndexRange(i,static_cast<size_type>(local_vector.get_size()));
 
     return local_vector[i];
   }
 
-  
-  
+
+
   template <typename Number>
-  inline paralution::LocalVector<Number> const& Vector<Number>::paralution_vector() const
+  inline paralution::LocalVector<Number> const &Vector<Number>::paralution_vector() const
   {
     return local_vector;
   }
