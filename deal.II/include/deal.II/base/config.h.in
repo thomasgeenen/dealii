@@ -555,6 +555,16 @@
 #endif
 
 
+/**********************************************
+ * Configured in configure_paralution.cmake:  *
+ **********************************************/
+
+#cmakedefine DEAL_II_WITH_PARALUTION
+#ifdef DEAL_II_WITH_PARALUTION
+#  define DEAL_II_USE_PARALUTION
+#endif
+
+
 #include <deal.II/base/numbers.h>
 #include <deal.II/base/types.h>
 
