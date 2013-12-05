@@ -549,7 +549,7 @@ public:
   };
 
   /**
-   * @name Constructors and initalization
+   * @name Constructors and initialization
    */
 //@{
   /**

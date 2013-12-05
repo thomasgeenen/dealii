@@ -33,6 +33,7 @@ SET(_src
   matrix_lib.cc
   matrix_out.cc
   parallel_vector.cc
+  paralution_sparse_matrix.cc
   petsc_block_sparse_matrix.cc
   petsc_full_matrix.cc
   petsc_matrix_base.cc

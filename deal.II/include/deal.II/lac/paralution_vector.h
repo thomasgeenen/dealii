@@ -40,7 +40,7 @@ namespace ParalutionWrappers
    * of vector is designed for use in either serial implementation or as a
    * localized copy on each processor. The implementation of this class is
    * based on the Paralution vector class LocalVector. The only requirement
-   * for this class to work is that Trilinos is installed with the same
+   * for this class to work is that Paralution is installed with the same
    * compiler as is used for compilation of deal.II.
    *
    * The interface of this class is modeled after the existing Vector class in

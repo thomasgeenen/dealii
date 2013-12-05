@@ -439,7 +439,7 @@ namespace TrilinosWrappers
    *
    * The interface of this class is modeled after the existing
    * SparseMatrix class in deal.II. It has almost the same member
-   * functions, and is often exchangable. However, since Trilinos only
+   * functions, and is often exchangeable. However, since Trilinos only
    * supports a single scalar type (double), it is not templated, and only
    * works with doubles.
    *
