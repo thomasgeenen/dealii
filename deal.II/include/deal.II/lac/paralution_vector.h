@@ -280,7 +280,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline size_type Vector<Number>::size() const
+  inline std::size_t Vector<Number>::size() const
   {
     return static_cast<size_type>(local_vector.get_size());
   }
@@ -392,7 +392,7 @@ namespace ParalutionWrappers
   {
     Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
 
-    local_vector.ScaleAdd(-1.,v.paralution_vector());
+    local_vector.ScaleAddScale(1.,v.paralution_vector(),-1.);
 
     return *this;
   }
@@ -402,7 +402,7 @@ namespace ParalutionWrappers
   template <typename Number>
   inline void Vector<Number>::add(const Number s)
   {
-    Assert(Numbers::is_finite(s),ExcNumberNotFinite());
+    Assert(numbers::is_finite(s),ExcNumberNotFinite());
 
     size_type size = local_vector.get_size();
     for (size_type i=0; i<size; ++i)
@@ -414,7 +414,7 @@ namespace ParalutionWrappers
   template <typename Number>
   inline Vector<Number>& Vector<Number>::operator*= (const Number factor)
   {
-    Assert(Numbers::is_finite(factor),ExcNumberNotFinite());
+    Assert(numbers::is_finite(factor),ExcNumberNotFinite());
 
     local_vector.Scale(factor);
 
@@ -426,11 +426,11 @@ namespace ParalutionWrappers
   template <typename Number>
   inline Vector<Number>& Vector<Number>::operator/= (const Number factor)
   {
-    Assert(Numbers::is_finite(factor),ExcNumberNotFinite());
+    Assert(numbers::is_finite(factor),ExcNumberNotFinite());
 
     const Number inv_factor(1./factor);
 
-    Assert(Numbers::is_finite(inv_factor),ExcNumberNotFinite());
+    Assert(numbers::is_finite(inv_factor),ExcNumberNotFinite());
 
     local_vector.Scale(inv_factor);
 
