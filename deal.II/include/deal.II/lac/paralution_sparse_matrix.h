@@ -27,7 +27,6 @@
 #include <algorithm>
 
 #include "paralution.hpp"
-#include "base/local_matrix.hpp"
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -118,7 +117,7 @@ namespace ParalutionWrappers
      * called the default constructor. It also forgets the sparsity pattern
      * it was previously tied to.
      */
-    virtual void clear();
+    void clear();
 
     /**
      * This function convert the underlying SparseMatrix to
@@ -149,6 +148,79 @@ namespace ParalutionWrappers
      * @name 3: Modifying entries
      */
     //@{
+    /**
+     * Set the element (<i>i,j</i>) to <tt>value</tt>. Throws an error if the
+     * entry does not exist or if <tt>value</tt> is not a finite number. Still,
+     * it is allowed to store zero values in non-existent fields.
+     */
+    void set (const size_type i,
+              const size_type j,
+              const Number value);
+
+    /**
+     * Set all elements given in a FullMatrix into the sparse matrix locations
+     * given by <tt>indices</tt>. In other words, this function writes the
+     * elements in <tt>full_matrix</tt> into the calling matrix, using the
+     * local-to-global indexing specified by <tt>indices</tt> for both the rows
+     * and the columns of the matrix. This function assumes a quadratic sparse
+     * matrix and a quadratic full_matrix, the usual situation in FE
+     * calculations.
+     *
+     * The optional parameter <tt>elide_zero_values</tt> can be used to specify
+     * whether zero values should be set anyway or they should be filtered away
+     * (and not change the previous content in the respective element if it
+     * exists). The default value is <tt>false</tt>, i.e., even zero values are
+     * treated.
+     */
+    template <typename Number2>
+    void set (const std::vector<size_type> &indices,
+              const FullMatrix<Number2>    &full_matrix,
+              const bool                    elide_zero_values = false);
+
+    /**
+     * Same function as before, but now including the possibility to use
+     * rectangular full_matrices and different local-to-global indexing on rows
+     * and columns, respectively.
+     */
+    template <typename Number2>
+    void set (const std::vector<size_type> &row_indices,
+              const std::vector<size_type> &col_indices,
+              const FullMatrix<Number2>    &full_matrix,
+              const bool                    elide_zero_values = false);
+
+    /**
+     * Set several elements in the specified row of the matrix with column
+     * indices as given by <tt>col_indices</tt> to the respective value.
+     *
+     * The optional parameter <tt>elide_zero_values</tt> can be used to specify
+     * whether zero values should be set anyway or they should be filtered away
+     * (and not change the previous content in the respective element if it
+     * exists). The default value is <tt>false</tt>, i.e., even zero values are
+     * treated.
+     */
+    template <typename Number2>
+    void set (const size_type               row,
+              const std::vector<size_type> &col_indices,
+              const std::vector<Number2>   &values,
+              const bool                    elide_zero_values = false);
+
+    /**
+     * Set several elements to values given by <tt>values</tt> in a given row in
+     * columns given by col_indices into the sparse matrix.
+     *
+     * The optional parameter <tt>elide_zero_values</tt> can be used to specify
+     * whether zero values should be inserted anyway or they should be filtered
+     * away. The default value is <tt>false</tt>, i.e., even zero values are
+     * inserted/replaced.
+     */
+    template <typename Number2>
+    void set (const size_type  row,
+              const size_type  n_cols,
+              const size_type *col_indices,
+              const Number2   *values,
+              const bool       elide_zero_values = false);
+
+
     /**
      * Add <tt>value</tt> to the element (<i>i,j</i>). Throws an error if
      * the entry does not exist or if <tt>value</tt> is not a finite number.
@@ -278,7 +350,7 @@ namespace ParalutionWrappers
   template <typename Number>
   inline SparseMatrix<Number>::~SparseMatrix()
   {
-    local_matrix.clear();
+    local_matrix.Clear();
   }
 
 
@@ -286,8 +358,16 @@ namespace ParalutionWrappers
   template <typename Number>
   inline void SparseMatrix<Number>::reinit(SparsityPattern const &sparsity_pattern)
   {
-    local_matrix.clear();
+    local_matrix.Clear();
     sparse_matrix.reinit(sparsity_pattern);
+  }
+
+
+  template <typename Number>
+  inline  void SparseMatrix<Number>::clear()
+  {
+    local_matrix.clear();
+    sparse_matrix.clear();
   }
 
 
@@ -304,6 +384,52 @@ namespace ParalutionWrappers
   inline typename SparseMatrix<Number>::size_type SparseMatrix<Number>::n() const
   {
     return local_matrix.get_ncols();
+  }
+
+
+
+  template <typename Number>
+  inline void SparseMatrix<Number>::set(const size_type i,
+                                        const size_type j,
+                                        const Number    value)
+  {
+    sparse_matrix.set(i,j,value);
+  }
+
+
+
+  template <typename Number>
+  template <typename Number2>
+  inline void SparseMatrix<Number>::set(const std::vector<size_type> &indices,
+                                        const FullMatrix<Number2>    &full_matrix,
+                                        const bool                    elide_zero_values)
+  {
+    sparse_matrix.set(indices,full_matrix,elide_zero_values);
+  }
+
+
+
+  template <typename Number>
+  template <typename Number2>
+  inline void SparseMatrix<Number>::set(const size_type               row,
+                                        const std::vector<size_type> &col_indices,
+                                        const std::vector<Number2>   &values,
+                                        const bool                    elide_zero_values)
+  {
+    sparse_matrix.set(row,col_indices,values,elide_zero_values);
+  }
+
+
+
+  template <typename Number>
+  template <typename Number2>
+  inline void SparseMatrix<Number>::set(const size_type  row,
+                                        const size_type  n_cols,
+                                        const size_type *col_indices,
+                                        const Number2   *values,
+                                        const bool       elide_zero_values)
+  {
+    sparse_matrix.set(row,n_cols,col_indices,values,elide_zero_values);
   }
 
 

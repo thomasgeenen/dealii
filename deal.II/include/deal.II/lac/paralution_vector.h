@@ -25,7 +25,6 @@
 #include <deal.II/base/subscriptor.h>
 
 #include "paralution.hpp"
-#include "base/local_vector.hpp"
 
 DEAL_II_NAMESPACE_OPEN
 
