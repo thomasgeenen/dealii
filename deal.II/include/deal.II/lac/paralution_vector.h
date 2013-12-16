@@ -122,6 +122,12 @@ namespace ParalutionWrappers
     void reinit(const size_type N);
 
     /**
+     * Change the dimension of the vector to that of the vector v. The vector
+     * is filled with zeros.
+     */
+    void reinit(const Vector<Number> &v);
+
+    /**
      * Return dimension of the vector.
      */
     std::size_t size() const;
@@ -153,6 +159,12 @@ namespace ParalutionWrappers
      * cannot be moved.
      */
     const_iterator end() const;
+
+    /**
+     * $l_2$-norm of the vector. The ssquare root of the sum of the squares of
+     * the elements.
+     */
+    Number l2_norm() const;
     //@}
 
     /**
@@ -218,6 +230,12 @@ namespace ParalutionWrappers
     void add(const Number s);
 
     /**
+     * Simple addition of a multiple of a vector, i.e. <tt>*this += a*V</tt>.
+     */
+    void add(const Number          a,
+             const Vector<Number> &v);
+
+    /**
      * Scale each element of the vector by a constant value.
      */
     Vector<Number>& operator*= (const Number factor);
@@ -279,6 +297,15 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
+  void Vector<Number>::reinit(const Vector<Number> &v)
+  {
+    local_vector.Clear();
+    local_vector.Allocate("deal_ii_vector",v.size());
+  }
+
+
+
+  template <typename Number>
   inline std::size_t Vector<Number>::size() const
   {
     return static_cast<size_type>(local_vector.get_size());
@@ -314,6 +341,14 @@ namespace ParalutionWrappers
   inline typename Vector<Number>::const_iterator Vector<Number>::end() const
   {
     return &(local_vector[0])+local_vector.get_size();
+  }
+
+
+
+  template <typename Number>
+  inline Number Vector<Number>::l2_norm() const
+  {
+    return local_vector.Norm();
   }
 
 
@@ -406,6 +441,16 @@ namespace ParalutionWrappers
     size_type size = local_vector.get_size();
     for (size_type i=0; i<size; ++i)
       local_vector[i] += s;
+  }
+
+
+  template <typename Number>
+  inline void Vector<Number>::add(const Number a,const Vector<Number> &v)
+  {
+    Assert(numbers::is_finite(a),ExcNumberNotFinite());
+    Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
+
+    local_vector.ScaleAddScale(1.,v.paralution_vector(),a);
   }
 
 

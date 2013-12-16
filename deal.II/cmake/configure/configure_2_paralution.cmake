@@ -18,10 +18,15 @@
 # Configuration for the paralution library:
 #
 
-#
-# The user has to know the location of the PARALUTION headers as well:
-#
-SET(PARALUTION_ADD_TO_USER_INCLUDE_DIRS TRUE)
 
+MACRO(FEATURE_PARALUTION_CONFIGURE_EXTERNAL)
+  
+  SET(PARALUTION_ADD_TO_USER_INCLUDE_DIRS TRUE)
+  REGISTER_FEATURE(PARALUTION)
+
+  SET(DEAL_II_EXPAND_PARALUTION_VECTOR_FLOAT "ParalutionWrappers::Vector<float>")
+  SET(DEAL_II_EXPAND_PARALUTION_VECTOR_DOUBLE "ParalutionWrappers::Vector<double>")
+
+ENDMACRO()
 
 CONFIGURE_FEATURE(PARALUTION)

@@ -41,6 +41,7 @@
 #include <deal.II/lac/trilinos_sparse_matrix.h>
 #include <deal.II/lac/trilinos_block_sparse_matrix.h>
 #include <deal.II/lac/matrix_block.h>
+#include <deal.II/lac/paralution_vector.h>
 
 #include <algorithm>
 #include <numeric>
