@@ -54,9 +54,10 @@ namespace ParalutionWrappers
   {
   public :
     /**
-     * Declare type for container size.
+     * Declare some of the standard types used.
      */
-    typedef types::global_dof_index size_type;
+    typedef dealii::types::global_dof_index size_type;
+    typedef Number                          value_type;
 
     /**
      * @name 1: Constructors and initialization
@@ -304,8 +305,21 @@ namespace ParalutionWrappers
 
     //@}
     /**
-     * @name 4: Access to underlying Paralution data
+     * @name 4: Access to underlying Paralution data and move data to
+     * accelerator/host
      */
+    /**
+     * Move the SparseMatrix to the accelerator. This function should only be
+     * called after convert_to_paralution_csr.
+     */
+    void move_to_accelerator();
+
+    /**
+     * Move the SparseMatrix to the host. This function should only be called
+     * after convert_to_paralution_csr.
+     */
+    void move_to_host();
+
     /**
      * Return a constant reference to the underlying Paralution LocalMatrix
      * data.
@@ -319,6 +333,12 @@ namespace ParalutionWrappers
     //@}
 
   private :
+    /**
+     * This flag is true if local_matrix is used. It becomes true after
+     * convert_to_paralution_csr has been called.
+     */
+    bool is_local_matrix;
+
     /**
      * Underlying Paralution LocalMatrix<Number>.
      */
@@ -335,7 +355,10 @@ namespace ParalutionWrappers
 // ------------------- inline functions --------------
 
   template <typename Number>
-  inline SparseMatrix<Number>::SparseMatrix() {}
+  inline SparseMatrix<Number>::SparseMatrix()
+    :
+    is_local_matrix(false)
+  {}
 
 
 
@@ -360,6 +383,7 @@ namespace ParalutionWrappers
   {
     local_matrix.Clear();
     sparse_matrix.reinit(sparsity_pattern);
+    is_local_matrix = false;
   }
 
 
@@ -368,6 +392,7 @@ namespace ParalutionWrappers
   {
     local_matrix.clear();
     sparse_matrix.clear();
+    is_local_matrix = false;
   }
 
 
@@ -375,7 +400,7 @@ namespace ParalutionWrappers
   template <typename Number>
   inline typename SparseMatrix<Number>::size_type SparseMatrix<Number>::m() const
   {
-    return local_matrix.get_nrows();
+    return (is_local_matrix ? local_matrix.get_nrow() : sparse_matrix.m());
   }
 
 
@@ -383,7 +408,7 @@ namespace ParalutionWrappers
   template <typename Number>
   inline typename SparseMatrix<Number>::size_type SparseMatrix<Number>::n() const
   {
-    return local_matrix.get_ncols();
+    return (is_local_matrix ? local_matrix.get_ncol() : sparse_matrix.n());
   }
 
 
@@ -475,6 +500,22 @@ namespace ParalutionWrappers
                                         const bool       col_indices_are_sorted)
   {
     sparse_matrix.add(row,n_cols,col_indices,values,elide_zero_values,col_indices_are_sorted);
+  }
+
+
+
+  template <typename Number>
+  inline void SparseMatrix<Number>::move_to_accelerator()
+  {
+    local_matrix.MoveToAccelerator();
+  }
+
+
+
+  template <typename Number>
+  inline void SparseMatrix<Number>::move_to_host()
+  {
+    local_matrix.MoveToHost();
   }
 
 

@@ -28,6 +28,7 @@
 #include <deal.II/lac/petsc_parallel_block_vector.h>
 #include <deal.II/lac/trilinos_vector.h>
 #include <deal.II/lac/trilinos_block_vector.h>
+#include <deal.II/lac/paralution_vector.h>
 #include <deal.II/lac/constraint_matrix.h>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_iterator.h>

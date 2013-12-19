@@ -78,13 +78,15 @@ namespace ParalutionWrappers
     SolverCG (SolverControl &cn);
 
     /**
-     * Solve the linear system <tt>Ax=b</tt> using the CG solver of Paralution.
+     * Solve the linear system <tt>Ax=b</tt> using the CG solver of
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
      */
-    //TODO: add a flag to move to the accelerator
     template <typename Number>
     void solve (const SparseMatrix<Number> &A,
                 Vector<Number>             &x,
-                const Vector<Number>       &b);
+                const Vector<Number>       &b,
+                bool                        move_to_accelerator=false);
   };
 
 
@@ -103,12 +105,14 @@ namespace ParalutionWrappers
 
     /**
      * Solve the linear system <tt>Ax=b</tt> using the BiCGStab solver of
-     * Paralution.
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
      */
     template <typename Number>
     void solve (const SparseMatrix<Number> &A,
                 Vector<Number>             &x,
-                const Vector<Number>       &b);
+                const Vector<Number>       &b,
+                bool                        move_to_accelerator=false);
   };
 
 
@@ -146,12 +150,14 @@ namespace ParalutionWrappers
 
     /**
      * Solve the linear system <tt>Ax=b</tt> using the GMRES solver of
-     * Paralution.
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
      */
     template <typename Number>
     void solve (const SparseMatrix<Number> &A,
                 Vector<Number>             &x,
-                const Vector<Number>       &b);
+                const Vector<Number>       &b,
+                bool                        move_to_accelerator=false);
 
   private:
     /**

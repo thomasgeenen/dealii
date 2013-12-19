@@ -22,7 +22,10 @@
 #ifdef DEAL_II_WITH_PARALUTION
 
 #include <deal.II/base/exceptions.h>
+#include <deal.II/base/index_set.h>
 #include <deal.II/base/subscriptor.h>
+#include <deal.II/lac/vector.h>
+#include <deal.II/base/memory_consumption.h>
 
 #include "paralution.hpp"
 
@@ -57,19 +60,30 @@ namespace ParalutionWrappers
   {
   public :
     /**
-     * Declare some the standard types used in all containers. These types
+     * Declare some of the standard types used in all containers. These types
      * parallel those in the <tt>C</tt> standard libraries
      * <tt>vector<...></tt> class.
      */
     typedef dealii::types::global_dof_index size_type;
+    typedef Number                          value_type;
     typedef Number                         *iterator;
     typedef const Number                   *const_iterator;
+
+    /**
+     * A variable that indicates whether this vector supports distributed data
+     * storage. If true, then this vector also needs an appropriate compress()
+     * function that allows communicating recent set or add operations to
+     * individual elements to be communicated to other processors.
+     *
+     * For the current class, the variable equals false, since it does not
+     * support parallel data storage.
+     */
+    static const bool supports_distributed_data = false;
 
     /**
      * @name 1: Basic Object-handling
      */
     //@{
-
     /**
      * Default constructor that generates and empy (zero size) vector. The
      * function <tt>reinit()</tt> will have to give the vector the correct
@@ -113,6 +127,23 @@ namespace ParalutionWrappers
      * Destructor.
      */
     ~Vector();
+
+    /**
+     * This function does nothing but is there for compatibility with the
+     * @p PETScWrappers::Vector class.
+     *
+     * For the PETSC vector wrapper class, this function compresses the
+     * underlying representation of the PETSc object, i.e. flusehes the
+     * buffers of the vector obkect if it has any. This function is necessary
+     * after writing into a vector element-by-element and before anything else
+     * can be done on it.
+     *
+     * However, for the implementation of this class, it is immaterial and
+     * thus an empty function.
+     */
+    void compress (::dealii::VectorOperation::values operation
+                   =::dealii::VectorOperation::unknown) const;
+
 
     /**
      * Change the dimension of the vector to @p N. The vector is filled with
@@ -161,10 +192,67 @@ namespace ParalutionWrappers
     const_iterator end() const;
 
     /**
+     * Set all components of the vector to the given number s.
+     */
+    Vector<Number>& operator= (const Number s);
+
+    /**
+     * Copy the given vector in the present one. Resize if necessary.
+     */
+    Vector<Number>& operator= (const Vector<Number> &v);
+
+    /**
+     * Mean value of the elements of this vector.
+     */
+    Number mean_value() const;
+
+    /**
      * $l_2$-norm of the vector. The ssquare root of the sum of the squares of
      * the elements.
      */
     Number l2_norm() const;
+
+    /**
+     * Return true if the vector contains ghost elements. Since this not a
+     * distributed vector the method always returns false.
+     */
+    bool has_ghost_elements() const;
+
+    /**
+     * Returns true if the given global index is in the local range of this
+     * processor. Since this is not a distributed vector the method always
+     * returns true.
+     */
+    bool in_local_range (const size_type global_index) const;
+
+    /**
+     * Return an index set that describes wich elements of this vector are
+     * owned by the current processor. Note that this index set does not
+     * include elements this vector may store locally as ghost elements but
+     * that are in fact owned by another processor. As a consequence, the
+     * index sets returned returned on different processors if this is a
+     * distributed vector will form disjoint sets that add up to the the
+     * complete index set. Obviously, if a vector is created on only one
+     * processor, then the result would satisfy
+     * @code
+     *   vec.locally_owned_elements() == complete_index_set(vec.size())
+     * @endcode
+     *
+     * Since the current data type does not support parallel data storage
+     * across different processors, the returned index set is the complete
+     * index set.
+     */
+    IndexSet locally_owned_elements() const;
+
+    /**
+     * Move the Vector to the accelerator.
+     */
+    void move_to_accelerator();
+
+    /**
+     * Move the Vector to the host.
+     */
+    void move_to_host();
     //@}
 
     /**
@@ -197,6 +285,24 @@ namespace ParalutionWrappers
     Number &operator[] (const size_type i);
 
     /**
+     * A collective get operation: instead of getting individual elements of a
+     * vector, this function allows to get a whole set of elements at once.
+     * The indices of the elements to be read are stated in the first
+     * argument, the corresponding values are returned in the second.
+     */
+    void extract_subvector_to (const std::vector<size_type> &indices,
+                               std::vector<Number>          &values) const;
+
+    /**
+     * Just as the above, but with pointers. Useful in minimizing copying of
+     * the data around.
+     */
+    template <typename ForwardIterator, typename OutputIterator>
+    void extract_subvector_to (ForwardIterator       indices_begin,
+                               const ForwardIterator indices_end,
+                               OutputIterator        values_begin) const;
+
+    /**
      * Return a constant reference to the underlying Paralution LocalVector
      * class.
      */
@@ -224,16 +330,77 @@ namespace ParalutionWrappers
     Vector<Number>& operator-= (const Vector<Number> &v);
 
     /**
+     * A collective add operation: This function adds a whole set of values
+     * stored in @p values to the vector components specified by @p indices.
+     */
+    template <typename Number2>
+    void add (const std::vector<size_type> &indices,
+              const std::vector<Number2>   &values);
+
+    /**
+     * This is a second collective add operation. As a difference, this
+     * function takes a deal.II vector of values.
+     */
+    template <typename Number2>
+    void add (const std::vector<size_type>    &indices,
+              const ::dealii::Vector<Number2> &values);
+
+    /**
+     * Take an address where <tt>n_eleements</tt> are stored contiguously and
+     * add them into the vector. Handles all case which are not covered by the
+     * other two <tt>add()</tt> functions above.
+     */
+    template <typename Number2>
+    void add (const size_type n_elements,
+              const size_type *indices,
+              const Number2 *values);
+
+    /**
      * Addition of @p s to all components. Note that @p s is a scalar and
      * not a vector.
      */
-    void add(const Number s);
+    void add (const Number s);
+
+    /**
+     * Simple vector addition, equal to the <tt>operator +=</tt>.
+     */
+    void add (const Vector<Number> &v);
 
     /**
      * Simple addition of a multiple of a vector, i.e. <tt>*this += a*V</tt>.
      */
-    void add(const Number          a,
-             const Vector<Number> &v);
+    void add (const Number a, const Vector<Number> &V);
+
+    /**
+     * Scaling and simple vector addition, i.e. <tt>*this += a*V + v*W</tt>.
+     */
+    void add (const Number a, const Vector<Number> &V,
+              const Number b, const Vector<Number> &W);
+
+    /**
+     * Scaling and simple vector addition, i.e. <tt>*this = s*(*this)+V</tt>.
+     */
+    void sadd (const Number s, const Vector<Number> &V);
+
+    /**
+     * Scaling and simple addition, i.e. <tt>*this = s*(*this)+a*V</tt>.
+     */
+    void sadd (const Number s, const Number a, const Vector<Number> &V);
+
+    /**
+     * Scaling and multiple addition.
+     * <tt>*this = s*(*this) + a*v + b*W</tt>.
+     */
+    void sadd (const Number s, const Number a, const Vector<Number> &V,
+               const Number b, const Vector<Number> &W);
+
+    /**
+     * Scaling and multiple addition.
+     * <tt>*this = s*(*this) + a*v + b*W + c*X</tt>.
+     */
+    void sadd (const Number s, const Number a, const Vector<Number> &V,
+               const Number v, const Vector<Number> &W, const Number c,
+               const Vector<Number> &X);
 
     /**
      * Scale each element of the vector by a constant value.
@@ -244,6 +411,35 @@ namespace ParalutionWrappers
      * Scale each element of the vector by the inverse of the given value.
      */
     Vector<Number>& operator/= (const Number factor);
+
+    /**
+     * Assignement <tt>*this = a*u</tt>.
+     */
+    void equ (const Number a, const Vector<Number> &u);
+
+    /**
+     * Assignement <tt>*this = a*u + b*v</tt>.
+     */
+    void equ (const Number a, const Vector<Number> &u,
+              const Number b, const Vector<Number> &v);
+
+    /**
+     * Assignement <tt>*this = a*u + b*v + c*w</tt>.
+     */
+    void equ (const Number a, const Vector<Number> &u,
+              const Number b, const Vector<Number> &v,
+              const Number c, const Vector<Number> &w);
+    //@}
+
+    /**
+     * @name 4: Mixed stuff
+     */
+    //@{
+    /**
+     * Determine an estimate for the memory consumption (in bytes) of this
+     * object.
+     */
+    std::size_t memory_consumption () const;
     //@}
 
   private :
@@ -285,7 +481,9 @@ namespace ParalutionWrappers
     local_vector.Clear();
   }
 
-
+  template <typename Number>
+  inline void Vector<Number>:: compress(::dealii::VectorOperation::values operation) const
+  {}
 
   template <typename Number>
   void Vector<Number>::reinit(const size_type n)
@@ -346,9 +544,83 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
+  inline Vector<Number>& Vector<Number>::operator= (const Number s)
+  {
+    Assert(numbers::is_finite(s),ExcNumberNotFinite());
+
+    local_vector.SetValues(s);
+
+    return *this;
+  }
+
+
+
+  template <typename Number>
+  inline Vector<Number>& Vector<Number>::operator= (const Vector<Number> &v)
+  {
+    local_vector.CopyFrom(v.paralution_vector());
+
+    return *this;
+  }
+
+
+
+  template <typename Number>
+  inline Number Vector<Number>::mean_value() const
+  {
+    Number mean(0.);
+    unsigned int i_max(size());
+    for (unsigned int i=0; i<i_max; ++i)
+      mean += local_vector[i];
+    mean /= i_max;
+
+    return mean;
+  }
+
+
+
+  template <typename Number>
   inline Number Vector<Number>::l2_norm() const
   {
     return local_vector.Norm();
+  }
+
+
+
+  template <typename Number>
+  inline bool Vector<Number>::has_ghost_elements() const
+  {
+    return false;
+  }
+
+  template <typename Number>
+  inline bool Vector<Number>::in_local_range(const size_type global_index) const
+  {
+    return true;
+  }
+
+
+
+  template <typename Number>
+  inline IndexSet Vector<Number>::locally_owned_elements() const
+  {
+    return complete_index_set(size());
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::move_to_accelerator()
+  {
+    local_vector.MoveToAccelerator();
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::move_to_host()
+  {
+    local_vector.MoveToHost();
   }
 
 
@@ -394,6 +666,32 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
+  inline void Vector<Number>::extract_subvector_to (const std::vector<size_type> &indices,
+                                                    std::vector<Number>          &values) const
+  {
+    for (size_type i=0; i<indices.size(); ++i)
+      values[i] = operator()(indices[i]);
+  }
+
+
+
+  template <typename Number>
+  template <typename ForwardIterator, typename OutputIterator>
+  inline void Vector<Number>::extract_subvector_to (ForwardIterator       indices_begin,
+                                                    const ForwardIterator indices_end,
+                                                    OutputIterator        values_begin) const
+  {
+    while (indices_begin != indices_end)
+      {
+        *values_begin = operator()(*indices_begin);
+        ++indices_begin;
+        ++values_begin;
+      }
+  }
+
+
+
+  template <typename Number>
   inline paralution::LocalVector<Number> const &Vector<Number>::paralution_vector() const
   {
     return local_vector;
@@ -414,7 +712,7 @@ namespace ParalutionWrappers
   {
     Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
 
-    local_vector.ScaleAdd(1.,v.paralution_vector());
+    local_vector.AddScale(v.paralution_vector(),1.);
 
     return *this;
   }
@@ -426,9 +724,49 @@ namespace ParalutionWrappers
   {
     Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
 
-    local_vector.ScaleAddScale(1.,v.paralution_vector(),-1.);
+    local_vector.AddScale(v.paralution_vector(),-1.);
 
     return *this;
+  }
+
+
+
+  template <typename Number>
+  template <typename Number2>
+  inline void Vector<Number>::add (const std::vector<size_type> &indices,
+                                   const std::vector<Number2>   &values)
+  {
+    Assert(indices.size()==values.size(),
+           ExcDimensionMismatch(indices.size(),values.size()));
+    add(indices.size(),&indices[0],&values[0]);
+  }
+
+
+
+  template <typename Number>
+  template <typename Number2>
+  inline void Vector<Number>::add (const std::vector<size_type>    &indices,
+                                   const ::dealii::Vector<Number2> &values)
+  {
+    Assert(indices.size()==values.size(),
+           ExcDimensionMismatch(indices.size(),values.size()));
+    add(indices.size(),&indices[0],values.begin());
+  }
+
+
+
+  template <typename Number>
+  template <typename Number2>
+  inline void Vector<Number>::add (const size_type n_indices,const size_type *indices,
+                                   const Number2 *values)
+  {
+    for (size_type i=0; i<n_indices; ++i)
+      {
+        Assert(indices[i]<size(),ExcIndexRange(indices[i],0,size()));
+        Assert(numbers::is_finite(values[i]),ExcNumberNotFinite());
+
+        local_vector[indices[i]] += values[i];
+      }
   }
 
 
@@ -445,12 +783,92 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline void Vector<Number>::add(const Number a,const Vector<Number> &v)
+  inline void Vector<Number>::add(const Vector<Number> &V)
+  {
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
+    local_vector.AddScale(V.paralution_vector(),1.);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::add(const Number a,const Vector<Number> &V)
   {
     Assert(numbers::is_finite(a),ExcNumberNotFinite());
-    Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
 
-    local_vector.ScaleAddScale(1.,v.paralution_vector(),a);
+    local_vector.ScaleAddScale(1.,V.paralution_vector(),a);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::add(const Number a,const Vector<Number> &V,
+                                  const Number b,const Vector<Number> &W)
+  {
+    Assert(numbers::is_finite(a),ExcNumberNotFinite());
+    Assert(numbers::is_finite(b),ExcNumberNotFinite());
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
+    Assert(size()==W.size(),ExcDimensionMismatch(size(),W.size()));
+
+    local_vector.ScaleAdd2(1.,V.paralution_vector(),a,W.paralution_vector(),b);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::sadd(const Number s, const Vector<Number> &V)
+  {
+    Assert(numbers::is_finite(s),ExcNumberNotFinite());
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
+
+    local_vector.ScaleAdd(s,V.paralution_vector());
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::sadd(const Number s, const Number a, const Vector<Number> &V)
+  {
+    Assert(numbers::is_finite(s),ExcNumberNotFinite());
+    Assert(numbers::is_finite(a),ExcNumberNotFinite());
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
+
+    local_vector.ScaleAddScale(s,V.paralution_vector(),a);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::sadd(const Number s, const Number a, const Vector<Number> &V,
+                                   const Number b, const Vector<Number> &W)
+  {
+    Assert(numbers::is_finite(s),ExcNumberNotFinite());
+    Assert(numbers::is_finite(a),ExcNumberNotFinite());
+    Assert(numbers::is_finite(b),ExcNumberNotFinite());
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
+    Assert(size()==W.size(),ExcDimensionMismatch(size(),W.size()));
+
+    local_vector.ScaleAdd2(s,V.paralution_vector(),a,W.paralution_vector(),b);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::sadd(const Number s, const Number a, const Vector<Number> &V,
+                                   const Number b, const Vector<Number> &W, const Number c,
+                                   const Vector<Number> &X)
+  {
+    Assert(numbers::is_finite(s),ExcNumberNotFinite());
+    Assert(numbers::is_finite(a),ExcNumberNotFinite());
+    Assert(numbers::is_finite(b),ExcNumberNotFinite());
+    Assert(numbers::is_finite(c),ExcNumberNotFinite());
+    Assert(size()==V.size(),ExcDimensionMismatch(size(),V.size()));
+    Assert(size()==W.size(),ExcDimensionMismatch(size(),W.size()));
+    Assert(size()==X.size(),ExcDimensionMismatch(size(),X.size()));
+
+    local_vector.ScaleAdd2(s,V.paralution_vector(),a,W.paralution_vector(),b);
+    local_vector.AddScale(X.paralution_vector(),c);
   }
 
 
@@ -479,6 +897,58 @@ namespace ParalutionWrappers
     local_vector.Scale(inv_factor);
 
     return *this;
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::equ (const Number a, const Vector<Number> &u)
+  {
+    Assert(numbers::is_finite(a), ExcNumberNotFinite());
+    Assert(size()==u.size(),ExcDimensionMismatch(size(),u.size()));
+
+    local_vector.ScaleAddScale(0.,u.paralution_vector(),a);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::equ (const Number a, const Vector<Number> &u,
+                                   const Number b, const Vector<Number> &v)
+  {
+    Assert(numbers::is_finite(a), ExcNumberNotFinite());
+    Assert(numbers::is_finite(b), ExcNumberNotFinite());
+    Assert(size()==u.size(),ExcDimensionMismatch(size(),u.size()));
+    Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
+
+    local_vector.ScaleAdd2(0.,u.paralution_vector(),a,v.paralution_vector(),b);
+  }
+
+
+
+  template <typename Number>
+  inline void Vector<Number>::equ (const Number a, const Vector<Number> &u,
+                                   const Number b, const Vector<Number> &v,
+                                   const Number c, const Vector<Number> &w)
+  {
+    Assert(numbers::is_finite(a), ExcNumberNotFinite());
+    Assert(numbers::is_finite(b), ExcNumberNotFinite());
+    Assert(numbers::is_finite(c), ExcNumberNotFinite());
+    Assert(size()==u.size(),ExcDimensionMismatch(size(),u.size()));
+    Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
+    Assert(size()==w.size(),ExcDimensionMismatch(size(),w.size()));
+
+    local_vector.ScaleAdd2(0.,u.paralution_vector(),a,v.paralution_vector(),b);
+    local_vector.AddScale(w.paralution_vector(),c);
+  }
+
+
+
+  template <typename Number>
+  std::size_t Vector<Number>::memory_consumption () const
+  {
+    //TODO: This is a very poor approzimation.
+    return sizeof(*this) + (size() * sizeof(Number));
   }
 }
 
