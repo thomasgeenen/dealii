@@ -121,7 +121,7 @@ namespace ParalutionWrappers
     void clear();
 
     /**
-     * This function convert the underlying SparseMatrix to
+     * This function converts the underlying SparseMatrix to
      * Paralution::LocalMatrix. This function frees the SparseMatrix.
      */
     void convert_to_paralution_csr();

@@ -42,6 +42,7 @@
 #include <deal.II/lac/trilinos_block_sparse_matrix.h>
 #include <deal.II/lac/matrix_block.h>
 #include <deal.II/lac/paralution_vector.h>
+#include <deal.II/lac/paralution_sparse_matrix.h>
 
 #include <algorithm>
 #include <numeric>
@@ -1830,6 +1831,13 @@ MATRIX_VECTOR_FUNCTIONS(TrilinosWrappers::SparseMatrix, TrilinosWrappers::MPI::V
 BLOCK_MATRIX_VECTOR_FUNCTIONS(TrilinosWrappers::BlockSparseMatrix, TrilinosWrappers::MPI::BlockVector);
 #endif
 
+#ifdef DEAL_II_WITH_PARALUTION
+MATRIX_FUNCTIONS(ParalutionWrappers::SparseMatrix<float>);
+MATRIX_FUNCTIONS(ParalutionWrappers::SparseMatrix<double>);
+MATRIX_VECTOR_FUNCTIONS(ParalutionWrappers::SparseMatrix<float>, ParalutionWrappers::Vector<float>);
+MATRIX_VECTOR_FUNCTIONS(ParalutionWrappers::SparseMatrix<double>, ParalutionWrappers::Vector<double>);
+#endif
+
 
 #define SPARSITY_FUNCTIONS(SparsityType) \
   template void ConstraintMatrix::add_entries_local_to_global<SparsityType> (\
@@ -1899,6 +1907,11 @@ ONLY_MATRIX_FUNCTIONS(PETScWrappers::SparseMatrix);
 ONLY_MATRIX_FUNCTIONS(PETScWrappers::BlockSparseMatrix);
 ONLY_MATRIX_FUNCTIONS(PETScWrappers::MPI::SparseMatrix);
 ONLY_MATRIX_FUNCTIONS(PETScWrappers::MPI::BlockSparseMatrix);
+#endif
+
+#ifdef DEAL_II_WITH_PARALUTION
+ONLY_MATRIX_FUNCTIONS(ParalutionWrappers::SparseMatrix<float>);
+ONLY_MATRIX_FUNCTIONS(ParalutionWrappers::SparseMatrix<double>);
 #endif
 
 #include "constraint_matrix.inst"
