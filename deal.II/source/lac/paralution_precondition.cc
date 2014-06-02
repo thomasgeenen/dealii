@@ -34,7 +34,7 @@ namespace ParalutionWrappers
   PreconditionJacobi<Number>::PreconditionJacobi()
   {
     this->preconditioner.reset(new paralution::Jacobi<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
+                               paralution::LocalVector<Number>,Number>);
   }
 
 
@@ -45,7 +45,7 @@ namespace ParalutionWrappers
   PreconditionSGS<Number>::PreconditionSGS()
   {
     this->preconditioner.reset(new paralution::SGS<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
+                               paralution::LocalVector<Number>,Number>);
   }
 
 
@@ -56,7 +56,7 @@ namespace ParalutionWrappers
   PreconditionMultiColoredSGS<Number>::PreconditionMultiColoredSGS()
   {
     this->preconditioner.reset(new paralution::MultiColoredSGS<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
+                               paralution::LocalVector<Number>,Number>);
   }
 
 
@@ -65,35 +65,38 @@ namespace ParalutionWrappers
 
   template <typename Number>
   PreconditionMultiColoredSOR<Number>::AdditionalData::
-  AdditionalData(const double omega) 
-  :
+  AdditionalData(const double omega)
+    :
     omega(omega)
   {}
 
 
+
   template <typename Number>
   PreconditionMultiColoredSOR<Number>::PreconditionMultiColoredSOR(
-      const AdditionalData &additional_data)
-  :
+    const AdditionalData &additional_data)
+    :
     additional_data(additional_data)
   {
     this->preconditioner.reset(new paralution::MultiColoredGS<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
+                               paralution::LocalVector<Number>,Number>);
 
     initialize(additional_data);
   }
+
+
 
   template <typename Number>
   void PreconditionMultiColoredSOR<Number>::initialize(const AdditionalData &additional_data)
   {
     // Downcast the preconditioner pointer to use SetRelaxation
     paralution::MultiColoredGS<paralution::LocalMatrix<Number>,paralution::
-      LocalVector<Number>,Number>* downcasted_ptr = static_cast<paralution::
-      MultiColoredGS<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-      Number>* >(this->preconditioner.get());
+    LocalVector<Number>,Number>* downcasted_ptr = static_cast<paralution::
+                                                  MultiColoredGS<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
+                                                  Number>* >(this->preconditioner.get());
 
     downcasted_ptr->SetRelaxation(additional_data.omega);
-  } 
+  }
 
 
 
@@ -101,28 +104,32 @@ namespace ParalutionWrappers
 
   template <typename Number>
   PreconditionILU<Number>::AdditionalData::AdditionalData(const unsigned int levels)
-  :
+    :
     levels(levels)
   {}
 
+
+
   template <typename Number>
   PreconditionILU<Number>::PreconditionILU(const AdditionalData &additional_data)
-  :
+    :
     additional_data(additional_data)
   {
     this->preconditioner.reset(new paralution::ILU<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
-  
+                               paralution::LocalVector<Number>,Number>);
+
     initialize(additional_data);
   }
+
+
 
   template <typename Number>
   void PreconditionILU<Number>::initialize(const AdditionalData &additional_data)
   {
     // Downcast the preconditioner pointer to use Set
     paralution::ILU<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-      Number>* downcasted_ptr = static_cast<paralution::ILU<paralution::
-        LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
+               Number>* downcasted_ptr = static_cast<paralution::ILU<paralution::
+                                         LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     downcasted_ptr->Set(additional_data.levels);
   }
@@ -133,42 +140,48 @@ namespace ParalutionWrappers
 
   template <typename Number>
   PreconditionILUT<Number>::AdditionalData::AdditionalData(const Number threshold)
-  :
+    :
     threshold(threshold),
     max_row(0)
   {}
 
+
+
   template <typename Number>
   PreconditionILUT<Number>::AdditionalData::AdditionalData(const Number threshold,
-      const unsigned int max_row)
-  :
+                                                           const unsigned int max_row)
+    :
     threshold(threshold),
     max_row(max_row)
   {}
 
+
+
   template <typename Number>
   PreconditionILUT<Number>::PreconditionILUT(const AdditionalData &additional_data)
-  :
+    :
     additional_data(additional_data)
   {
     this->preconditioner.reset(new paralution::ILUT<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
+                               paralution::LocalVector<Number>,Number>);
 
     initialize(additional_data);
-  }  
-  
+  }
+
+
+
   template <typename Number>
   void PreconditionILUT<Number>::initialize(const AdditionalData &additional_data)
   {
     // Downcast the preconditioner pointer to use Set
     paralution::ILUT<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-      Number>* downcasted_ptr = static_cast<paralution::ILUT<paralution::
-        LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
+               Number>* downcasted_ptr = static_cast<paralution::ILUT<paralution::
+                                         LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
-   if (additional_data.max_row==0)
-     downcasted_ptr->Set(additional_data.threshold);
-   else
-     downcasted_ptr->Set(additional_data.threshold,additional_data.max_row);
+    if (additional_data.max_row==0)
+      downcasted_ptr->Set(additional_data.threshold);
+    else
+      downcasted_ptr->Set(additional_data.threshold,additional_data.max_row);
   }
 
 
@@ -178,30 +191,34 @@ namespace ParalutionWrappers
   template <typename Number>
   PreconditionMultiColoredILU<Number>::AdditionalData::
   AdditionalData(const unsigned int levels, const unsigned int power)
-  :
+    :
     levels(levels),
     power(power)
   {}
 
+
+
   template <typename Number>
   PreconditionMultiColoredILU<Number>::
   PreconditionMultiColoredILU(const AdditionalData &additional_data)
-  :
+    :
     additional_data(additional_data)
   {
     this->preconditioner.reset(new paralution::MultiColoredILU<paralution::LocalMatrix<Number>,
-                   paralution::LocalVector<Number>,Number>);
+                               paralution::LocalVector<Number>,Number>);
 
     initialize(additional_data);
   }
+
+
 
   template <typename Number>
   void PreconditionMultiColoredILU<Number>::initialize(const AdditionalData &additional_data)
   {
     // Downcast the preconditioner pointer to use Set
     paralution::MultiColoredILU<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-      Number>* downcasted_ptr = static_cast<paralution::MultiColoredILU<paralution::
-        LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
+               Number>* downcasted_ptr = static_cast<paralution::MultiColoredILU<paralution::
+                                         LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     downcasted_ptr->Set(additional_data.levels,additional_data.power);
   }

@@ -45,28 +45,28 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionBase
   {
-    public :
-      /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
-       */
-      struct AdditionalData 
-      {};
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {};
 
-      /**
-       * Constructor. Does not do anything.
-       */
-      PreconditionBase ();
+    /**
+     * Constructor. Does not do anything.
+     */
+    PreconditionBase ();
 
-      friend class SolverBase;
+    friend class SolverBase;
 
-    protected :
-      /**
-       * This is a pointer to the preconditioner object that is used when
-       * applying the preconditioner.
-       */
-      std_cxx1x::shared_ptr<paralution::Preconditioner<paralution::LocalMatrix<Number>,
-        paralution::LocalVector<Number>,Number> > preconditioner;
+  protected :
+    /**
+     * This is a pointer to the preconditioner object that is used when
+     * applying the preconditioner.
+     */
+    std_cxx1x::shared_ptr<paralution::Preconditioner<paralution::LocalMatrix<Number>,
+              paralution::LocalVector<Number>,Number> > preconditioner;
   };
 
 
@@ -81,18 +81,18 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionJacobi : public PreconditionBase<Number>
   {
-    public :
-      /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
-       */               
-      struct AdditionalData
-      {};
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {};
 
-      /**
-       * Constructor.
-       */
-      PreconditionJacobi ();
+    /**
+     * Constructor.
+     */
+    PreconditionJacobi ();
 
   private :
     /**
@@ -114,18 +114,18 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionSGS : public PreconditionBase<Number>
   {
-    public :
-      /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
-       */               
-      struct AdditionalData
-      {};
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {};
 
-      /**
-       * Constructor.
-       */
-      PreconditionSGS ();
+    /**
+     * Constructor.
+     */
+    PreconditionSGS ();
 
   private :
     /**
@@ -148,18 +148,18 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionMultiColoredSGS : public PreconditionBase<Number>
   {
-    public :
-      /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
-       */               
-      struct AdditionalData
-      {};
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {};
 
-      /**
-       * Constructor.
-       */
-      PreconditionMultiColoredSGS ();
+    /**
+     * Constructor.
+     */
+    PreconditionMultiColoredSGS ();
 
   private :
     /**
@@ -182,39 +182,39 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionMultiColoredSOR : public PreconditionBase<Number>
   {
-    public :
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {
       /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
+       * Constructor. By default, set the damping parameter to one.
        */
-      struct AdditionalData
-      {
-        /**
-         * Constructor. By default, set the damping parameter to one.
-         */
-        AdditionalData (const double omega = 1);
-
-        /**
-         * Relaxation parameter.
-         */
-        double omega;
-      };
-
-      /** 
-       * Constructor. Take additional flags if there are any.
-       */
-      PreconditionMultiColoredSOR (const AdditionalData &additional_data = AdditionalData());
+      AdditionalData (const double omega = 1);
 
       /**
-       * This function changes the value of the additional flags.
+       * Relaxation parameter.
        */
-      void initialize (const AdditionalData &additional_data = AdditionalData());
+      double omega;
+    };
 
-    private :
-      /**
-       * Store a copy of the flags for this particular preconditioner.
-       */
-      AdditionalData additional_data;
+    /**
+     * Constructor. Take additional flags if there are any.
+     */
+    PreconditionMultiColoredSOR (const AdditionalData &additional_data = AdditionalData());
+
+    /**
+     * This function changes the value of the additional flags.
+     */
+    void initialize (const AdditionalData &additional_data = AdditionalData());
+
+  private :
+    /**
+     * Store a copy of the flags for this particular preconditioner.
+     */
+    AdditionalData additional_data;
   };
 
 
@@ -229,39 +229,39 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionILU : public PreconditionBase<Number>
   {
-    public :
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {
       /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
+       * Constructor. By default, set the fill-in parameter to zero.
        */
-      struct AdditionalData
-      {
-        /**
-         * Constructor. By default, set the fill-in parameter to zero.
-         */
-        AdditionalData (const unsigned int levels = 0);
-
-        /**
-         * Fill-in parameter.
-         */
-        unsigned int levels;
-      };
+      AdditionalData (const unsigned int levels = 0);
 
       /**
-       * Constructor. Take additional flags if there are any.
+       * Fill-in parameter.
        */
-      PreconditionILU (const AdditionalData &additional_data = AdditionalData());
+      unsigned int levels;
+    };
 
-      /**
-       * This function changes the value of the additional flags.
-       */
-      void initialize (const AdditionalData &additional_data = AdditionalData());
+    /**
+     * Constructor. Take additional flags if there are any.
+     */
+    PreconditionILU (const AdditionalData &additional_data = AdditionalData());
 
-    private :
-      /**
-       * Store a copy of the flags for this particular preconditioner.
-       */
-      AdditionalData additional_data;
+    /**
+     * This function changes the value of the additional flags.
+     */
+    void initialize (const AdditionalData &additional_data = AdditionalData());
+
+  private :
+    /**
+     * Store a copy of the flags for this particular preconditioner.
+     */
+    AdditionalData additional_data;
   };
 
 
@@ -279,49 +279,49 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionILUT : public PreconditionBase<Number>
   {
-    public :
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {
       /**
-       * Standardized data struct to pipe additional flags to the 
-       * preconditioner.
+       * Constructor. By default, set the threshold to zero.
        */
-      struct AdditionalData 
-      {
-        /**
-         * Constructor. By default, set the threshold to zero.
-         */
-        AdditionalData (const Number threshold = 0.);
-
-        /**
-         * Constructor.
-         */
-        AdditionalData (const Number threshold, const unsigned int max_row);
-
-        /**
-         * Threshold.
-         */
-        Number threshold;
-
-        /**
-         * Maximum number of elements per row.
-         */
-        unsigned int max_row;
-      };
+      AdditionalData (const Number threshold = 0.);
 
       /**
-       * Constructor. Take additional flags if there are any.
+       * Constructor.
        */
-      PreconditionILUT (const AdditionalData &additional_data = AdditionalData());
+      AdditionalData (const Number threshold, const unsigned int max_row);
 
       /**
-       * This function changes the value of the additional flags.
+       * Threshold.
        */
-      void initialize (const AdditionalData &additional_data = AdditionalData());
+      Number threshold;
 
-    private :
       /**
-       * Store a copy of the flags for this particular preconditioner.
+       * Maximum number of elements per row.
        */
-      AdditionalData additional_data;
+      unsigned int max_row;
+    };
+
+    /**
+     * Constructor. Take additional flags if there are any.
+     */
+    PreconditionILUT (const AdditionalData &additional_data = AdditionalData());
+
+    /**
+     * This function changes the value of the additional flags.
+     */
+    void initialize (const AdditionalData &additional_data = AdditionalData());
+
+  private :
+    /**
+     * Store a copy of the flags for this particular preconditioner.
+     */
+    AdditionalData additional_data;
   };
 
 
@@ -339,45 +339,45 @@ namespace ParalutionWrappers
   template <typename Number>
   class PreconditionMultiColoredILU : public PreconditionBase<Number>
   {
-    public :
+  public :
+    /**
+     * Standardized data struct to pipe additional flags to the
+     * preconditioner.
+     */
+    struct AdditionalData
+    {
       /**
-       * Standardized data struct to pipe additional flags to the
-       * preconditioner.
+       * Constructor. By default, set the fill-in parameter to zero and the
+       * power-pattern to one.
        */
-      struct AdditionalData
-      {
-        /**
-         * Constructor. By default, set the fill-in parameter to zero and the
-         * power-pattern to one.
-         */
-        AdditionalData (const unsigned int levels = 0, const unsigned int power = 1);
-
-        /**
-         * Fill-in parameter.
-         */
-        unsigned int levels;
-
-        /**
-         * Power parameter.
-         */
-        unsigned int power;
-      };
+      AdditionalData (const unsigned int levels = 0, const unsigned int power = 1);
 
       /**
-       * Constructor. Take additional flags if there are any.
+       * Fill-in parameter.
        */
-      PreconditionMultiColoredILU (const AdditionalData &additional_data = AdditionalData());
+      unsigned int levels;
 
       /**
-       * This function changes the value of additional flags.
+       * Power parameter.
        */
-      void initialize (const AdditionalData &additional_data = AdditionalData());
+      unsigned int power;
+    };
 
-      private :
-      /**
-       * Store a copy of the flags for this particular preconditioner.
-       */
-      AdditionalData additional_data;
+    /**
+     * Constructor. Take additional flags if there are any.
+     */
+    PreconditionMultiColoredILU (const AdditionalData &additional_data = AdditionalData());
+
+    /**
+     * This function changes the value of additional flags.
+     */
+    void initialize (const AdditionalData &additional_data = AdditionalData());
+
+  private :
+    /**
+     * Store a copy of the flags for this particular preconditioner.
+     */
+    AdditionalData additional_data;
   };
 }
 

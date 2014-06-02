@@ -52,7 +52,7 @@ namespace ParalutionWrappers
     // Set absolute tolerance, relative tolerance, divergence tolerance,
     // maximum number of iterations.
     solver->Init(solver_control.tolerance(),0.,1.e100,
-                solver_control.max_steps());
+                 solver_control.max_steps());
 
     // Move the solver to the accelerator if necessary.
     if (move_to_accelerator==true)
@@ -81,8 +81,8 @@ namespace ParalutionWrappers
                        bool                            move_to_accelerator)
   {
     std_cxx1x::shared_ptr<paralution::CG<paralution::LocalMatrix<Number>,
-      paralution::LocalVector<Number>,Number> > solver(new  paralution::
-        CG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               CG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
 
     this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
@@ -106,8 +106,8 @@ namespace ParalutionWrappers
                              bool                            move_to_accelerator)
   {
     std_cxx1x::shared_ptr<paralution::BiCGStab<paralution::LocalMatrix<Number>,
-      paralution::LocalVector<Number>,Number> > solver(new  paralution::
-        BiCGStab<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               BiCGStab<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
 
     this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
@@ -115,6 +115,14 @@ namespace ParalutionWrappers
 
 
   /* --------------------- SolverGMRES ----------------------- */
+
+  SolverGMRES::AdditionalData::AdditionalData(const unsigned int restart_parameter)
+    :
+    restart_parameter(restart_parameter)
+  {}
+
+
+
 
   SolverGMRES::SolverGMRES (SolverControl        &cn,
                             const AdditionalData &data)
@@ -133,8 +141,8 @@ namespace ParalutionWrappers
                           bool                            move_to_accelerator)
   {
     std_cxx1x::shared_ptr<paralution::GMRES<paralution::LocalMatrix<Number>,
-      paralution::LocalVector<Number>,Number> > solver(new  paralution::
-        GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
 
     // Set the restart parameter.
     solver->SetBasisSize(additional_data.restart_parameter);
