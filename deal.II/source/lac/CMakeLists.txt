@@ -33,6 +33,7 @@ SET(_src
   matrix_lib.cc
   matrix_out.cc
   parallel_vector.cc
+  paralution_precondition.cc
   paralution_sparse_matrix.cc
   paralution_solver.cc
   petsc_block_sparse_matrix.cc

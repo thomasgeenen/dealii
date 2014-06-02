@@ -76,6 +76,7 @@ namespace ParalutionWrappers
 
     // Free the memory used by sparse_matrix.
     sparse_matrix.clear();
+    is_local_matrix = true;
   }
 }
 

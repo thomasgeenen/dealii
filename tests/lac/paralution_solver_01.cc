@@ -26,6 +26,7 @@
 #include <deal.II/lac/paralution_sparse_matrix.h>
 #include <deal.II/lac/paralution_vector.h>
 #include <deal.II/lac/paralution_solver.h>
+#include <deal.II/lac/paralution_precondition.h>
 
 int main()
 {
@@ -56,6 +57,9 @@ int main()
     testproblem.five_point(A);
     A.convert_to_paralution_csr();
 
+    //Preconditioner
+    ParalutionWrappers::PreconditionJacobi<double> p;
+
     ParalutionWrappers::Vector<double> u(dim);
     ParalutionWrappers::Vector<double> f(dim);
     for (unsigned int i=0; i<dim; ++i)
@@ -63,7 +67,7 @@ int main()
       u[i] = 0.;
       f[i] = 1.;
     }
-    solver.solve(A,u,f);
+    solver.solve(A,u,f,p);
   }
 
   paralution::stop_paralution();

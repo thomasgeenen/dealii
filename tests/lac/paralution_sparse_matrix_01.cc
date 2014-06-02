@@ -25,18 +25,18 @@
 template <typename Number>
 void check()
 {
-  ParalutionWrappers::SparseMatrix<Number> matrix;
-  SparsityPattern pattern(4,5,2);
-  pattern.add(0,2);
-  pattern.add(0,0);
-  pattern.add(1,0);
-  pattern.add(1,3);
-  pattern.add(2,4);
-  pattern.add(2,2);
-  pattern.add(3,0);
-  pattern.add(3,4);
-  pattern.compress();
+  SparsityPattern sparsity_pattern(4,5,2);
+  sparsity_pattern.add(0,2);
+  sparsity_pattern.add(0,0);
+  sparsity_pattern.add(1,0);
+  sparsity_pattern.add(1,3);
+  sparsity_pattern.add(2,4);
+  sparsity_pattern.add(2,2);
+  sparsity_pattern.add(3,0);
+  sparsity_pattern.add(3,4);
+  sparsity_pattern.compress();
 
+  ParalutionWrappers::SparseMatrix<Number> matrix;
   matrix.reinit(sparsity_pattern);
   matrix.add(0,2,3.5);
   matrix.add(0,0,1.);

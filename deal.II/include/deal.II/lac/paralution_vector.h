@@ -27,7 +27,7 @@
 #include <deal.II/lac/vector.h>
 #include <deal.II/base/memory_consumption.h>
 
-#include "paralution.hpp"
+#include <paralution.hpp>
 
 DEAL_II_NAMESPACE_OPEN
 

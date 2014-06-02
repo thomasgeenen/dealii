@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // $Id: paralution_solver.cc 31349 2013-10-20 19:07:06Z maier $
 //
-// Copyright (C) 2013 by the deal.II authors
+// Copyright (C) 2013, 2014 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -17,8 +17,6 @@
 #include <deal.II/lac/paralution_solver.h>
 
 #ifdef DEAL_II_WITH_PARALUTION
-
-#include "paralution.hpp"
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -36,6 +34,34 @@ namespace ParalutionWrappers
     return solver_control;
   }
 
+  template <typename Number>
+  void SolverBase::execute_solve(std_cxx1x::shared_ptr<paralution::IterativeLinearSolver<paralution::
+                                 LocalMatrix<Number>,paralution::LocalVector<Number>,Number> > solver,
+                                 const SparseMatrix<Number>     &A,
+                                 Vector<Number>                 &x,
+                                 const Vector<Number>           &b,
+                                 const PreconditionBase<Number> &preconditioner,
+                                 bool                            move_to_accelerator)
+  {
+    // Set the preconditioner.
+    solver->SetPreconditioner(*(preconditioner.preconditioner));
+
+    // Set the system to solve
+    solver->SetOperator(A.paralution_matrix());
+
+    // Set absolute tolerance, relative tolerance, divergence tolerance,
+    // maximum number of iterations.
+    solver->Init(solver_control.tolerance(),0.,1.e100,
+                solver_control.max_steps());
+
+    // Move the solver to the accelerator if necessary.
+    if (move_to_accelerator==true)
+      solver->MoveToAccelerator();
+
+    solver->Build();
+    solver->Solve(b.paralution_vector(),&(x.paralution_vector()));
+  }
+
 
 
   /* ---------------------- SolverCG ------------------------ */
@@ -48,22 +74,17 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  void SolverCG::solve(const SparseMatrix<Number> &A,
-                       Vector<Number>             &x,
-                       const Vector<Number>       &b,
-                       bool                        move_to_accelerator)
+  void SolverCG::solve(const SparseMatrix<Number>     &A,
+                       Vector<Number>                 &x,
+                       const Vector<Number>           &b,
+                       const PreconditionBase<Number> &preconditioner,
+                       bool                            move_to_accelerator)
   {
-    paralution::CG<paralution::LocalMatrix<Number>,
-               paralution::LocalVector<Number>,Number> solver;
-    solver.SetOperator(A.paralution_matrix());
-    // Set absolute tolerance, relative tolerance, divergence tolerance,
-    // maximum number of iterations.
-    solver.Init(solver_control.tolerance(),0.,1.e100,
-                solver_control.max_steps());
-    if (move_to_accelerator==true)
-      solver.MoveToAccelerator();
-    solver.Build();
-    solver.Solve(b.paralution_vector(),&(x.paralution_vector()));
+    std_cxx1x::shared_ptr<paralution::CG<paralution::LocalMatrix<Number>,
+      paralution::LocalVector<Number>,Number> > solver(new  paralution::
+        CG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
 
 
@@ -78,21 +99,17 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  void SolverBicgstab::solve(const SparseMatrix<Number> &A,
-                             Vector<Number>             &x,
-                             const Vector<Number>       &b,
-                             bool                        move_to_accelerator)
+  void SolverBicgstab::solve(const SparseMatrix<Number>     &A,
+                             Vector<Number>                 &x,
+                             const Vector<Number>           &b,
+                             const PreconditionBase<Number> &preconditioner,
+                             bool                            move_to_accelerator)
   {
-    paralution::BiCGStab<paralution::LocalMatrix<Number>,
-               paralution::LocalVector<Number>,Number> solver;
-    // Set absolute tolerance, relative tolerance, divergence tolerance,
-    // maximum number of iterations.
-    solver.Init(solver_control.tolerance(),0.,1.e100,
-                solver_control.max_steps());
-    if (move_to_accelerator==true)
-      solver.MoveToAccelerator();
-    solver.Build();
-    solver.Solve(b.paralution_vector(),&(x.paralution_vector()));
+    std_cxx1x::shared_ptr<paralution::BiCGStab<paralution::LocalMatrix<Number>,
+      paralution::LocalVector<Number>,Number> > solver(new  paralution::
+        BiCGStab<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
 
 
@@ -109,25 +126,21 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  void SolverGMRES::solve(const SparseMatrix<Number> &A,
-                          Vector<Number>             &x,
-                          const Vector<Number>       &b,
-                          bool                        move_to_accelerator)
+  void SolverGMRES::solve(const SparseMatrix<Number>     &A,
+                          Vector<Number>                 &x,
+                          const Vector<Number>           &b,
+                          const PreconditionBase<Number> &preconditioner,
+                          bool                            move_to_accelerator)
   {
-    paralution::GMRES<paralution::LocalMatrix<Number>,
-               paralution::LocalVector<Number>,Number> solver;
-    // Set absolute tolerance, relative tolerance, divergence tolerance,
-    // maximum number of iterations.
-    solver.Init(solver_control.tolerance(),0.,1.e100,
-                solver_control.max_steps());
-    solver.SetBasisSize(additional_data.restart_parameter);
-    if (move_to_accelerator==true)
-      solver.MoveToAccelerator();
-    solver.Build();
-    solver.Solve(b.paralution_vector(),&(x.paralution_vector()));
+    std_cxx1x::shared_ptr<paralution::GMRES<paralution::LocalMatrix<Number>,
+      paralution::LocalVector<Number>,Number> > solver(new  paralution::
+        GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
+
+    // Set the restart parameter.
+    solver->SetBasisSize(additional_data.restart_parameter);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
-
-
 }
 
 
@@ -135,35 +148,41 @@ namespace ParalutionWrappers
 // Explicit instantiations
 namespace ParalutionWrappers
 {
-  template void SolverCG::solve<float>(const SparseMatrix<float> &A,
-                                       Vector<float>             &x,
-                                       const Vector<float>       &b,
-                                       bool                       move_to_accelerator);
+  template void SolverCG::solve<float>(const SparseMatrix<float>     &A,
+                                       Vector<float>                 &x,
+                                       const Vector<float>           &b,
+                                       const PreconditionBase<float> &preconditioner,
+                                       bool                           move_to_accelerator);
 
-  template void SolverCG::solve<double>(const SparseMatrix<double> &A,
-                                        Vector<double>             &x,
-                                        const Vector<double>       &b,
-                                        bool                       move_to_accelerator);
+  template void SolverCG::solve<double>(const SparseMatrix<double>     &A,
+                                        Vector<double>                 &x,
+                                        const Vector<double>           &b,
+                                        const PreconditionBase<double> &preconditioner,
+                                        bool                            move_to_accelerator);
 
-  template void SolverBicgstab::solve<float>(const SparseMatrix<float> &A,
-                                             Vector<float>             &x,
-                                             const Vector<float>       &b,
-                                             bool                       move_to_accelerator);
+  template void SolverBicgstab::solve<float>(const SparseMatrix<float>     &A,
+                                             Vector<float>                 &x,
+                                             const Vector<float>           &b,
+                                             const PreconditionBase<float> &preconditioner,
+                                             bool                           move_to_accelerator);
 
-  template void SolverBicgstab::solve<double>(const SparseMatrix<double> &A,
-                                              Vector<double>             &x,
-                                              const Vector<double>       &b,
-                                              bool                       move_to_accelerator);
+  template void SolverBicgstab::solve<double>(const SparseMatrix<double>     &A,
+                                              Vector<double>                 &x,
+                                              const Vector<double>           &b,
+                                              const PreconditionBase<double> &preconditioner,
+                                              bool                            move_to_accelerator);
 
-  template void SolverGMRES::solve<float>(const SparseMatrix<float> &A,
-                                          Vector<float>             &x,
-                                          const Vector<float>       &b,
-                                          bool                       move_to_accelerator);
+  template void SolverGMRES::solve<float>(const SparseMatrix<float>     &A,
+                                          Vector<float>                 &x,
+                                          const Vector<float>           &b,
+                                          const PreconditionBase<float> &preconditioner,
+                                          bool                           move_to_accelerator);
 
-  template void SolverGMRES::solve<double>(const SparseMatrix<double> &A,
-                                           Vector<double>             &x,
-                                           const Vector<double>       &b,
-                                           bool                       move_to_accelerator);
+  template void SolverGMRES::solve<double>(const SparseMatrix<double>     &A,
+                                           Vector<double>                 &x,
+                                           const Vector<double>           &b,
+                                           const PreconditionBase<double> &preconditioner,
+                                           bool                            move_to_accelerator);
 }
 
 DEAL_II_NAMESPACE_CLOSE

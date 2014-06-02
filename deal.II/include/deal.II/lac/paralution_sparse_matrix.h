@@ -26,7 +26,7 @@
 #include <deal.II/lac/sparse_matrix.h>
 #include <algorithm>
 
-#include "paralution.hpp"
+#include <paralution.hpp>
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -46,7 +46,7 @@ namespace ParalutionWrappers
    * exchangeable. However, Paralution LocalMatix only supports float and double.
    *
    * @ingroup ParalutionWrappers
-   * @ingroup Matrix1
+   * @ingroup Matrix
    * @author Bruno Turcksin, 2013
    */
   template <typename Number>
@@ -135,14 +135,12 @@ namespace ParalutionWrappers
      * of dimension $m \times n$. This function works only after
      * convert_to_paralution_csr has been called.
      */
-    //TODO make the function work all the time
     size_type m() const;
 
     /**
      * Return the dimension of the range space. To remember: the matrix is
      * of dimension $m \times n$.
      */
-    //TODO make the function work all the time
     size_type n() const;
     //@}
     /**

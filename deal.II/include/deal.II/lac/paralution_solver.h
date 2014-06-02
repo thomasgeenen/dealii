@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // $Id: paralution_solver.h 30040 2013-07-18 17:06:48Z maier $
 //
-// Copyright (C) 2013 by the deal.II authors
+// Copyright (C) 2013, 2014 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -22,11 +22,14 @@
 
 #ifdef DEAL_II_WITH_PARALUTION
 
+#include <deal.II/base/std_cxx1x/shared_ptr.h>
 #include <deal.II/lac/exceptions.h>
 #include <deal.II/lac/solver_control.h>
+#include <deal.II/lac/paralution_precondition.h>
 #include <deal.II/lac/paralution_vector.h>
 #include <deal.II/lac/paralution_sparse_matrix.h>
 
+#include <paralution.hpp>
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -52,6 +55,18 @@ namespace ParalutionWrappers
     SolverControl &control() const;
 
   protected:
+    /**
+     * Initialize the solver and solve the system of equations.
+     */
+    template <typename Number>
+    void execute_solve(std_cxx1x::shared_ptr<paralution::IterativeLinearSolver<paralution::
+                       LocalMatrix<Number>,paralution::LocalVector<Number>,Number> > solver,
+                       const SparseMatrix<Number>     &A,
+                       Vector<Number>                 &x,
+                       const Vector<Number>           &b,
+                       const PreconditionBase<Number> &preconditioner,
+                       bool                            move_to_accelerator);
+
     /**
      * Reference to the object that controls convergence of the iteratove
      * solver. In fact, for these Paralution wrappers, Paralution does so
@@ -83,10 +98,11 @@ namespace ParalutionWrappers
      * solver is built on the accelerator.
      */
     template <typename Number>
-    void solve (const SparseMatrix<Number> &A,
-                Vector<Number>             &x,
-                const Vector<Number>       &b,
-                bool                        move_to_accelerator=false);
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
   };
 
 
@@ -109,10 +125,11 @@ namespace ParalutionWrappers
      * solver is built on the accelerator.
      */
     template <typename Number>
-    void solve (const SparseMatrix<Number> &A,
-                Vector<Number>             &x,
-                const Vector<Number>       &b,
-                bool                        move_to_accelerator=false);
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
   };
 
 
@@ -154,10 +171,11 @@ namespace ParalutionWrappers
      * solver is built on the accelerator.
      */
     template <typename Number>
-    void solve (const SparseMatrix<Number> &A,
-                Vector<Number>             &x,
-                const Vector<Number>       &b,
-                bool                        move_to_accelerator=false);
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
 
   private:
     /**
@@ -171,7 +189,7 @@ DEAL_II_NAMESPACE_CLOSE
 
 #endif // DEAL_II_WITH_PARALUTION
 
-/*----------------------------   trilinos_solver.h     ---------------------------*/
+/*----------------------------   paralution_solver.h     ---------------------------*/
 
 #endif
-/*----------------------------   trilinos_solver.h     ---------------------------*/
+/*----------------------------   paralution_solver.h     ---------------------------*/
