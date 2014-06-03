@@ -27,8 +27,10 @@ void check()
   ParalutionWrappers::Vector<Number> vector_1;
   ParalutionWrappers::Vector<Number> vector_2(100);
 
-  deallog << vector_1.size() <<std::endl;
-  deallog << vector_2.size() <<std::endl;
+  deallog << vector_1.size() << std::endl;
+  deallog << vector_2.size() << std::endl;
+  vector_2.clear();
+  deallog << vector_2.size() << std::endl;
 }
 
 int main()

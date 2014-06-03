@@ -36,6 +36,7 @@ SET(_src
   paralution_precondition.cc
   paralution_sparse_matrix.cc
   paralution_solver.cc
+  paralution_vector.cc
   petsc_block_sparse_matrix.cc
   petsc_full_matrix.cc
   petsc_matrix_base.cc
