@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // $Id: paralution_sparse_matrix.h 30040 2013-07-18 17:06:48Z maier $
 //
-// Copyright (C) 2013 by the deal.II authors
+// Copyright (C) 2013, 2014 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -37,6 +37,14 @@ DEAL_II_NAMESPACE_OPEN
 namespace ParalutionWrappers
 {
   /**
+   * Enum on format of Paralusion Matrix: DENSE, Compressed Sparse Row,
+   * Modified Compressed Sparse Row, Block Compressed Sparse Row, COOrdinate
+   * format, DIAgonal format, ELLpack format, HYBrid format (mixed between ELL
+   * and COO).
+   */
+  enum matrix_format{DENSE, CSR, MCSR, BCSR, COO, DIA, ELL, HYB};
+
+  /**
    * This class implements a wrapper to use the Paralution sparse matrix class
    * LocalMatrix. This class is designed for use in either serial
    * implementation or as a localized copy on each processors.
@@ -47,7 +55,7 @@ namespace ParalutionWrappers
    *
    * @ingroup ParalutionWrappers
    * @ingroup Matrix
-   * @author Bruno Turcksin, 2013
+   * @author Bruno Turcksin, 2013, 2014
    */
   template <typename Number>
   class SparseMatrix : public Subscriptor
@@ -76,18 +84,14 @@ namespace ParalutionWrappers
     SparseMatrix();
 
     /**
-     * Copy constructor. This constructor is only allowed to be called if
-     * the matrix to be copied is empty. This is for the same reason as for
-     * the SparsityPattern, see there fore the details.
-     *
-     * If you really want to copy a whole matrix, you can do so by using the
-     * copy_from() function.
+     * Copy constructor. If @p copy_backend is set to false, the copied sparse
+     * matrix stays on the host/device where it is created. Otherwise the copied
+     * sparse matrix is moved to the host/device of the given vector.
      */
-    //TODO
-    //SparseMarix(const SparseMatrix &sparse_matrix);
+    SparseMatrix(const SparseMatrix &sparse_matrix, bool copy_backend = false);
 
     /**
-     * Constructo. Takes the given matrix sparsity structure to represent
+     * Constructor. Takes the given matrix sparsity structure to represent
      * the sparsity pattern of this matrix. You can change the sparsity
      * pattern later on by calling the reinit(const SparsityPattern&)
      * function.
@@ -122,7 +126,7 @@ namespace ParalutionWrappers
 
     /**
      * This function converts the underlying SparseMatrix to
-     * Paralution::LocalMatrix. This function frees the SparseMatrix.
+     * Paralution::LocalMatrix. This function frees the dealii::SparseMatrix. 
      */
     void convert_to_paralution_csr();
     //@}
@@ -142,6 +146,17 @@ namespace ParalutionWrappers
      * of dimension $m \times n$.
      */
     size_type n() const;
+
+    /**
+     * This function returns true if the underlying matrix is a
+     * paralution::LocalMatrix.
+     */
+    bool is_paralution_matrix() const;
+    
+    /**
+     * Return the format of the Paralution::LocalMatrix.
+     */
+    matrix_format get_matrix_format() const;
     //@}
     /**
      * @name 3: Modifying entries
@@ -254,7 +269,7 @@ namespace ParalutionWrappers
 
     /**
      * Same function as before, but now including the possibility to use
-     * rectaangular full_matrices and different local-to-global indexing on
+     * rectangular full_matrices and different local-to-global indexing on
      * rows and columns, respectively.
      *
      * This function only works on the host.
@@ -301,9 +316,27 @@ namespace ParalutionWrappers
               const bool       elide_zero_values = true,
               const bool       col_indices_are_sorted = false);
 
+    /**
+     * Transpose the matrix. This function can only be called if the underlying
+     * is a Paralution::LocalMatrix.
+     */
+    void transpose();
+
+    /**
+     * Copy @p sparse_matrix.
+     */
+    void copy_from(const SparseMatrix &sparse_matrix);
+
+    /**
+     * Copy @p sparse_matrix. If the underlying matrix is a
+     * Paralution::LocalMatrix, the functions returns immediately and performs
+     * the asynchronous transder in the background.
+     */
+    void copy_from_async(const SparseMatrix &sparse_matrix);
+
     //@}
     /**
-     * @name 4: Access to underlying Paralution data and move data to
+     * @name 4: Access to underlying data and move data to
      * accelerator/host
      */
     /**
@@ -319,21 +352,53 @@ namespace ParalutionWrappers
     void move_to_host();
 
     /**
-     * Return a constant reference to the underlying Paralution LocalMatrix
+     * Move the SparseMatrix to the accelerator. The function returns
+     * immediately and performs the asynchronous transfer in the background.
+     * This function should only be called after convert_to_paralution_csr.
+     */
+    void move_to_accelerator_async();
+
+    /**
+     * Move the SparseMatrix to the host. The function returns immediately and
+     * performs the asynchronous transfer in the background. This function 
+     * should only be called after convert_to_paralution_csr.
+     */
+    void move_to_host_async();
+
+    /**
+     * Synchronize the code when move_to_host_async or move_to_accelerator_async
+     * is used.
+     */
+    void sync();
+
+    /**
+     * Return a constant reference to the underlying dealii::SparseMatrix.
+     */
+    ::dealii::SparseMatrix<Number> const &dealii_matrix() const;
+
+    /**
+     * Return a reference to the underlying dealii::SparseMatrix.
+     */
+    ::dealii::SparseMatrix<Number>& dealii_matrix();
+
+    /**
+     * Return a constant reference to the underlying Paralution::LocalMatrix
      * data.
      */
     paralution::LocalMatrix<Number> const &paralution_matrix() const;
 
     /**
-     * Return a reference to the underlying Paralution LocalMatrix data.
+     * Return a reference to the underlying Paralution::LocalMatrix data.
      */
     paralution::LocalMatrix<Number>& paralution_matrix();
     //@}
 
   private :
     /**
-     * This flag is true if local_matrix is used. It becomes true after
-     * convert_to_paralution_csr has been called.
+     * This flag is true if @p local_matrix is used. It becomes true after
+     * convert_to_paralution_csr has been called, i.e. after the @p
+     * sparse_matrix as be freed and the paralution::LocalMatrix has been
+     * created.
      */
     bool is_local_matrix;
 
@@ -407,6 +472,22 @@ namespace ParalutionWrappers
   inline typename SparseMatrix<Number>::size_type SparseMatrix<Number>::n() const
   {
     return (is_local_matrix ? local_matrix.get_ncol() : sparse_matrix.n());
+  }
+
+
+
+  template <typename Number>
+  inline bool SparseMatrix<Number>::is_paralution_matrix() const
+  {
+    return is_local_matrix;
+  }
+
+
+  
+  template <typename Number>
+  inline matrix_format SparseMatrix<Number>::get_matrix_format() const
+  {
+    return local_matrix.get_format();
   }
 
 
@@ -514,6 +595,46 @@ namespace ParalutionWrappers
   inline void SparseMatrix<Number>::move_to_host()
   {
     local_matrix.MoveToHost();
+  }
+
+
+
+  template <typename Number>
+  inline void SparseMatrix<Number>::move_to_accelerator_async()
+  {
+    local_matrix.MoveToAcceleratorAsync();
+  }
+
+
+
+  template <typename Number>
+  inline void SparseMatrix<Number>::move_to_host_async()
+  {
+    local_matrix.MoveToHostAsync();
+  }
+
+  
+  
+  template <typename Number>
+  inline void SparseMatrix<Number>::sync()
+  {
+    local_matrix.Sync();
+  }
+
+
+
+  template <typename Number>
+  inline ::dealii::SparseMatrix<Number> const &SparseMatrix<Number>::dealii_matrix() const
+  {
+    return sparse_matrix;
+  }
+
+
+
+  template <typename Number>
+  inline ::dealii::SparseMatrix<Number>& SparseMatrix<Number>::dealii_matrix()
+  {
+    return sparse_matrix;
   }
 
 

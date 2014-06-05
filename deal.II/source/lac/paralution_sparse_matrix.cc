@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // $Id: paralution_sparse_matrix.cc 31567 2013-11-06 18:01:36Z turcksin $
 //
-// Copyright (C) 2013 by the deal.II authors
+// Copyright (C) 2013, 2014 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -22,6 +22,25 @@ DEAL_II_NAMESPACE_OPEN
 
 namespace ParalutionWrappers
 {
+  template <typename Number>
+  SparseMatrix<Number>::SparseMatrix(const SparseMatrix &sparse_matrix, bool copy_backend)
+  {
+    is_local_matrix = sparse_matrix.is_paralution_matrix();
+    // This is costly but copy_from is used to have a consistent behavior between
+    // sparse_matrix and local_matrix.
+    if (is_local_matrix==false)
+      sparse_matrix.copy_from(sparse_matrix.sparse_matrix());
+    else
+    {
+      if (copy_backend==false)
+        local_matrix.CopyFrom(sparse_matrix.paralution_matrix());
+      else
+        local_matrix.CloneFrom(sparse_matrix.paralution_matrix());
+    }
+  }
+
+
+
   template <typename Number>
   void SparseMatrix<Number>::convert_to_paralution_csr()
   {
@@ -77,6 +96,46 @@ namespace ParalutionWrappers
     // Free the memory used by sparse_matrix.
     sparse_matrix.clear();
     is_local_matrix = true;
+  }
+
+
+
+  template <typename Number>
+  void SparseMatrix<Number>::transpose()
+  {
+    if (is_local_matrix==false)
+    {
+      AssertThrow(false,
+          ExcMessage("Transpose cannot be used if the underlying matrix is a dealii::SparseMatrix."));
+    }
+    else
+    {
+      local_matrix.Transpose();
+    }
+  }
+
+
+
+  template <typename Number>
+  void SparseMatrix<Number>::copy_from(const SparseMatrix &sparse_matrix)
+  {
+    is_local_matrix = sparse_matrix.is_paralution_matrix();
+    if (is_local_matrix==false)
+      sparse_matrix.copy_from(sparse_matrix.sparse_matrix());
+    else
+      local_matrix.CopyFrom(sparse_matrix.paralution_matrix());
+  }
+
+
+
+  template <typename Number>
+  void SparseMatrix<Number>::copy_from_async(const SparseMatrix &sparse_matrix)
+  {
+    is_local_matrix = sparse_matrix.is_paralution_matrix();
+    if (is_local_matrix==false)
+      sparse_matrix.copy_from(sparse_matrix.sparse_matrix());
+    else
+      local_matrix.CopyFromAsync(sparse_matrix.paralution_matrix());
   }
 }
 

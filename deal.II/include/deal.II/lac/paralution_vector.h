@@ -54,7 +54,6 @@ namespace ParalutionWrappers
    * @ingroup Vectors
    * @author Bruno Turcksin, 2013, 2014
    */
-  //TODO: lots of functions are missing
   template <typename Number>
   class Vector : public Subscriptor
   {
@@ -93,7 +92,7 @@ namespace ParalutionWrappers
 
     /**
      * Copy constructor. Set the dimension to that of the given vector, and
-     * copies all the elements. If copy_backend is set to false, the copied
+     * copies all the elements. If @p copy_backend is set to false, the copied
      * vector stays on the host/device where it is created. Otherwise the
      * copied vector is moved to the host/device of the given vector.
      */
