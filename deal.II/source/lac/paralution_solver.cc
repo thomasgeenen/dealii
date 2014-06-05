@@ -34,6 +34,8 @@ namespace ParalutionWrappers
     return solver_control;
   }
 
+
+
   template <typename Number>
   void SolverBase::execute_solve(std_cxx1x::shared_ptr<paralution::IterativeLinearSolver<paralution::
                                  LocalMatrix<Number>,paralution::LocalVector<Number>,Number> > solver,
@@ -64,11 +66,61 @@ namespace ParalutionWrappers
 
 
 
-  /* ---------------------- SolverCG ------------------------ */
+  /* --------------------- SolverRichardson----------------- */
 
-  SolverCG::SolverCG (SolverControl &cn)
+  SolverRichardson::AdditionalData::AdditionalData(const unsigned int verbose,
+                                                   const double relaxation_parameter)
     :
-    SolverBase (cn)
+    verbose(verbose),
+    relaxation_parameter(relaxation_parameter)
+  {}
+
+
+
+  SolverRichardson::SolverRichardson (SolverControl        &cn,
+                                      const AdditionalData &data)
+    :
+    SolverBase (cn),
+    additional_data (data)
+  {}
+
+
+
+  template <typename Number>
+  void SolverRichardson::solve(const SparseMatrix<Number>     &A,
+                               Vector<Number>                 &x,
+                               const Vector<Number>           &b,
+                               const PreconditionBase<Number> &preconditioner,
+                               bool                            move_to_accelerator)
+  {
+    std_cxx1x::shared_ptr<paralution::FixedPoint<paralution::LocalMatrix<Number>,
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               FixedPoint<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
+
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
+
+    // Set the relaxation parameter.
+    solver->SetRelaxation(additional_data.relaxation_parameter);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
+  }
+
+
+
+  /* ---------------------- SolverCG ------------------------- */
+
+  SolverCG::AdditionalData::AdditionalData(const unsigned int verbose)
+    :
+    verbose(verbose)
+  {}
+
+
+
+  SolverCG::SolverCG (SolverControl &cn, const AdditionalData &data)
+    :
+    SolverBase (cn),
+    additional_data (data)
   {}
 
 
@@ -84,6 +136,86 @@ namespace ParalutionWrappers
               paralution::LocalVector<Number>,Number> > solver(new  paralution::
                                                                CG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
 
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
+  }
+
+
+
+  /* ---------------------- SolverCR ------------------------- */
+
+  SolverCR::AdditionalData::AdditionalData(const unsigned int verbose)
+    :
+    verbose(verbose)
+  {}
+
+
+
+  SolverCR::SolverCR (SolverControl &cn, const AdditionalData &data)
+    :
+    SolverBase (cn),
+    additional_data (data)
+  {}
+
+
+
+  template <typename Number>
+  void SolverCR::solve(const SparseMatrix<Number>     &A,
+                       Vector<Number>                 &x,
+                       const Vector<Number>           &b,
+                       const PreconditionBase<Number> &preconditioner,
+                       bool                            move_to_accelerator)
+  {
+    std_cxx1x::shared_ptr<paralution::CR<paralution::LocalMatrix<Number>,
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               CR<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
+
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
+  }
+
+
+
+  /* ---------------------- SolverDPCG ----------------------- */
+
+  SolverDPCG::AdditionalData::AdditionalData(const unsigned int verbose,
+                                             const const unsigned int n_deflated_vectors)
+    :
+    verbose (verbose),
+    n_deflated_vectors(n_deflated_vectors)
+  {}
+
+
+
+  SolverDPCG::SolverDPCG (SolverControl &cn, const AdditionalData &data)
+    :
+    SolverBase (cn),
+    additional_data (data)
+  {}
+
+
+
+  template <typename Number>
+  void SolverDPCG::solve(const SparseMatrix<Number>     &A,
+                         Vector<Number>                 &x,
+                         const Vector<Number>           &b,
+                         const PreconditionBase<Number> &preconditioner,
+                         bool                            move_to_accelerator)
+  {
+    std_cxx1x::shared_ptr<paralution::DPCG<paralution::LocalMatrix<Number>,
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               DPCG<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
+
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
+
+    // Set the number of deflated vectors.
+    solver->SetNVectors(additional_data.n_deflated_vectors);
+
     this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
 
@@ -91,9 +223,17 @@ namespace ParalutionWrappers
 
   /* -------------------- SolverBicgstab --------------------- */
 
-  SolverBicgstab::SolverBicgstab (SolverControl &cn)
+  SolverBicgstab::AdditionalData::AdditionalData(const unsigned int verbose)
     :
-    SolverBase (cn)
+    verbose(verbose)
+  {}
+
+
+
+  SolverBicgstab::SolverBicgstab (SolverControl &cn, const AdditionalData &data)
+    :
+    SolverBase (cn),
+    additional_data (data)
   {}
 
 
@@ -109,6 +249,9 @@ namespace ParalutionWrappers
               paralution::LocalVector<Number>,Number> > solver(new  paralution::
                                                                BiCGStab<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,Number>);
 
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
+
     this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
   }
 
@@ -116,11 +259,12 @@ namespace ParalutionWrappers
 
   /* --------------------- SolverGMRES ----------------------- */
 
-  SolverGMRES::AdditionalData::AdditionalData(const unsigned int restart_parameter)
+  SolverGMRES::AdditionalData::AdditionalData(const unsigned int verbose,
+                                              const unsigned int restart_parameter)
     :
+    verbose(verbose),
     restart_parameter(restart_parameter)
   {}
-
 
 
 
@@ -143,6 +287,51 @@ namespace ParalutionWrappers
     std_cxx1x::shared_ptr<paralution::GMRES<paralution::LocalMatrix<Number>,
               paralution::LocalVector<Number>,Number> > solver(new  paralution::
                                                                GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
+
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
+
+    // Set the restart parameter.
+    solver->SetBasisSize(additional_data.restart_parameter);
+
+    this->execute_solve<Number>(solver,A,x,b,preconditioner,move_to_accelerator);
+  }
+
+
+
+  /* --------------------- SolverFGMRES ---------------------- */
+
+  SolverFGMRES::AdditionalData::AdditionalData(const unsigned int verbose,
+                                               const unsigned int restart_parameter)
+    :
+    verbose(verbose),
+    restart_parameter(restart_parameter)
+  {}
+
+
+
+  SolverFGMRES::SolverFGMRES (SolverControl        &cn,
+                              const AdditionalData &data)
+    :
+    SolverBase (cn),
+    additional_data (data)
+  {}
+
+
+
+  template <typename Number>
+  void SolverFGMRES::solve(const SparseMatrix<Number>     &A,
+                           Vector<Number>                 &x,
+                           const Vector<Number>           &b,
+                           const PreconditionBase<Number> &preconditioner,
+                           bool                            move_to_accelerator)
+  {
+    std_cxx1x::shared_ptr<paralution::FGMRES<paralution::LocalMatrix<Number>,
+              paralution::LocalVector<Number>,Number> > solver(new  paralution::
+                                                               FGMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,Number>);
+
+    // Set the verbosity of the solver.
+    solver->Verbose(additional_data.verbose);
 
     // Set the restart parameter.
     solver->SetBasisSize(additional_data.restart_parameter);
@@ -168,6 +357,30 @@ namespace ParalutionWrappers
                                         const PreconditionBase<double> &preconditioner,
                                         bool                            move_to_accelerator);
 
+  template void SolverCR::solve<float>(const SparseMatrix<float>     &A,
+                                       Vector<float>                 &x,
+                                       const Vector<float>           &b,
+                                       const PreconditionBase<float> &preconditioner,
+                                       bool                           move_to_accelerator);
+
+  template void SolverCR::solve<double>(const SparseMatrix<double>     &A,
+                                        Vector<double>                 &x,
+                                        const Vector<double>           &b,
+                                        const PreconditionBase<double> &preconditioner,
+                                        bool                            move_to_accelerator);
+
+  template void SolverDPCG::solve<float>(const SparseMatrix<float>     &A,
+                                         Vector<float>                 &x,
+                                         const Vector<float>           &b,
+                                         const PreconditionBase<float> &preconditioner,
+                                         bool                           move_to_accelerator);
+
+  template void SolverDPCG::solve<double>(const SparseMatrix<double>     &A,
+                                          Vector<double>                 &x,
+                                          const Vector<double>           &b,
+                                          const PreconditionBase<double> &preconditioner,
+                                          bool                            move_to_accelerator);
+
   template void SolverBicgstab::solve<float>(const SparseMatrix<float>     &A,
                                              Vector<float>                 &x,
                                              const Vector<float>           &b,
@@ -191,6 +404,18 @@ namespace ParalutionWrappers
                                            const Vector<double>           &b,
                                            const PreconditionBase<double> &preconditioner,
                                            bool                            move_to_accelerator);
+
+  template void SolverFGMRES::solve<float>(const SparseMatrix<float>     &A,
+                                           Vector<float>                 &x,
+                                           const Vector<float>           &b,
+                                           const PreconditionBase<float> &preconditioner,
+                                           bool                           move_to_accelerator);
+
+  template void SolverFGMRES::solve<double>(const SparseMatrix<double>     &A,
+                                            Vector<double>                 &x,
+                                            const Vector<double>           &b,
+                                            const PreconditionBase<double> &preconditioner,
+                                            bool                            move_to_accelerator);
 }
 
 DEAL_II_NAMESPACE_CLOSE

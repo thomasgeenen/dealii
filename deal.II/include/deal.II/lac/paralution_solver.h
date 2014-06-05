@@ -79,18 +79,45 @@ namespace ParalutionWrappers
 
 
   /**
-   * An implementation of the solver interface using the Paralution CG solver.
+   * An implementation of the solver interface using the Paralution Richardson solver
+   * (paralution::fixed_point_iteration).
    *
    * @ingroup ParalutionWrappers
-   * @author Bruno Turcksin, 2013
+   * @author Bruno Turcksin, 2014
    */
-  class SolverCG : public SolverBase
+  class SolverRichardson : public SolverBase
   {
   public:
     /**
-     * Constructor.
+     * Standardized data struct to pipe additional data to the solver.
      */
-    SolverCG (SolverControl &cn);
+    struct AdditionalData
+    {
+      /**
+       * Constructor. By default, set the verbosity of the solver to zero and
+       * the relaxation parameter to one.
+       */
+      AdditionalData (const unsigned int verbose = 0,
+                      const double relaxation_parameter = 1.);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+
+      /**
+       * Relaxation parameter.
+       */
+      double relaxation_parameter;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverRichardson (SolverControl        &cn,
+                      const AdditionalData &data = AdditionalData());
 
     /**
      * Solve the linear system <tt>Ax=b</tt> using the CG solver of
@@ -103,6 +130,190 @@ namespace ParalutionWrappers
                 const Vector<Number>           &b,
                 const PreconditionBase<Number> &preconditioner,
                 bool                            move_to_accelerator=false);
+
+  private:
+    /**
+     * store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
+  };
+
+
+
+  /**
+   * An implementation of the solver interface using the Paralution CG solver.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2013
+   */
+  class SolverCG : public SolverBase
+  {
+  public:
+    /**
+     * Standardized data struct to pipe additional data to the solver.
+     */
+    struct AdditionalData
+    {
+      /**
+       * Constructor. By default, set the verbosity of the solver to zero.
+       */
+      AdditionalData (const unsigned int verbose = 0);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+
+      /**
+       * Relaxation parameter.
+       */
+      double relaxation_parameter;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverCG (SolverControl        &cn,
+              const AdditionalData &data = AdditionalData());
+
+    /**
+     * Solve the linear system <tt>Ax=b</tt> using the CG solver of
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
+     */
+    template <typename Number>
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
+
+  private:
+    /**
+     * store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
+  };
+
+
+
+  /**
+   * An implementation of the solver interface using the Paralution CR solver.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2014
+   */
+  class SolverCR : public SolverBase
+  {
+  public:
+    /**
+     * Standardized data struct to pipe additional data to the solver.
+     */
+    struct AdditionalData
+    {
+      /**
+       * Constructor. By default, set the verbosity of the solver to zero.
+       */
+      AdditionalData (const unsigned int verbose = 0);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverCR (SolverControl        &cn,
+              const AdditionalData &data = AdditionalData());
+
+    /**
+     * Solve the linear system <tt>Ax=b</tt> using the CR solver of
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
+     */
+    template <typename Number>
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
+
+  private:
+    /**
+     * store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
+  };
+
+
+
+  /**
+   * An implementation of the solver interface using the Paralution DPCG solver.
+   * DPCG stands for Deflated Preconditioned Conjugate Gradient. It is a
+   * two-level preconditioned CG algorithm to iteratively solve and
+   * ill-conditioned linear system. Deflation tries to remove the bad
+   * eigenvalues from the spectrum of the preconditioned system.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2014
+   */
+  class SolverDPCG : public SolverBase
+  {
+  public:
+    /**
+     * Standardized data struct to pipe additional data to the solver.
+     */
+    struct AdditionalData
+    {
+      /**
+       * Constructor. By default, set the verbosity of the solver to zero and
+       * set the number of deflated vectors to two.
+       */
+      AdditionalData (const unsigned int verbose = 0,
+                      const unsigned int n_deflated_vectors = 2);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+
+      /**
+       * Number of deflated vectors.
+       */
+      unsigned int n_deflated_vectors;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverDPCG (SolverControl        &cn,
+                const AdditionalData &data = AdditionalData());
+
+    /**
+     * Solve the linear system <tt>Ax=b</tt> using the DPCG solver of
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
+     */
+    template <typename Number>
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
+
+  private:
+    /**
+     * store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
   };
 
 
@@ -110,14 +321,36 @@ namespace ParalutionWrappers
   /**
    * An implementation of the solver interface using the Paralution BiCGStab
    * solver.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2013
    */
   class SolverBicgstab : public SolverBase
   {
   public:
     /**
-     * Constructor.
+     * Standardized data struct to pipe additional data to the solver.
      */
-    SolverBicgstab (SolverControl &cn);
+    struct AdditionalData
+    {
+      /**
+       * Constructor. By default, set the verbosity of the solver to zero.
+       */
+      AdditionalData (const unsigned int verbose = 0);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverBicgstab (SolverControl &cn,
+                    const AdditionalData &data = AdditionalData());
 
     /**
      * Solve the linear system <tt>Ax=b</tt> using the BiCGStab solver of
@@ -130,6 +363,12 @@ namespace ParalutionWrappers
                 const Vector<Number>           &b,
                 const PreconditionBase<Number> &preconditioner,
                 bool                            move_to_accelerator=false);
+
+  private:
+    /**
+     * store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
   };
 
 
@@ -137,6 +376,9 @@ namespace ParalutionWrappers
   /**
    * An implementation of the solver interface using the Paralution GMRES
    * solver.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2013
    */
   class SolverGMRES : public SolverBase
   {
@@ -147,10 +389,18 @@ namespace ParalutionWrappers
     struct AdditionalData
     {
       /**
-       * Constructor. By default, set the size of the Krylov space to 30,
-       * i.e. do a restart every 30 iterations.
+       * Constructor. By default, set the verbosity of the solver to zero and
+       * set the size of the Krylov space to 30, i.e. do a restart every 30
+       * iterations.
        */
-      AdditionalData (const unsigned int restart_parameter = 30);
+      AdditionalData (const unsigned int verbose = 0,
+                      const unsigned int restart_parameter = 30);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
 
       /**
        * Size of the Krylov space.
@@ -160,9 +410,9 @@ namespace ParalutionWrappers
 
     /**
      * Constructor. AdditionalData is a structure that contains additional
-     * flags for tuning this particulat solver.
+     * flags for tuning this particular solver.
      */
-    SolverGMRES (SolverControl &cn,
+    SolverGMRES (SolverControl        &cn,
                  const AdditionalData &data = AdditionalData());
 
     /**
@@ -179,7 +429,70 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * Store a copy of the flags for this solver.
+     * store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
+  };
+
+
+
+  /**
+   * An implementation of the solver interface using the Paralution GMRES
+   * solver.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2014
+   */
+  class SolverFGMRES : public SolverBase
+  {
+  public:
+    /**
+     * Standardized data struct to pipe additional data to the solver.
+     */
+    struct AdditionalData
+    {
+      /**
+       * Constructor. By default, set the verbosity of the solver to zero and
+       * set the size of the Krylov space to 30, i.e. do a restart every 30
+       * iterations.
+       */
+      AdditionalData (const unsigned int verbose = 0,
+                      const unsigned int restart_parameter = 30);
+
+      /**
+       * Verbosity of the solver: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+
+      /**
+       * Size of the Krylov space.
+       */
+      unsigned int restart_parameter;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverFGMRES (SolverControl        &cn,
+                  const AdditionalData &data = AdditionalData());
+
+    /**
+     * Solve the linear system <tt>Ax=b</tt> using the GMRES solver of
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver is built on the accelerator.
+     */
+    template <typename Number>
+    void solve (const SparseMatrix<Number>     &A,
+                Vector<Number>                 &x,
+                const Vector<Number>           &b,
+                const PreconditionBase<Number> &preconditioner,
+                bool                            move_to_accelerator=false);
+
+  private:
+    /**
+     * store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
