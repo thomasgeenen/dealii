@@ -18,8 +18,8 @@
 // Test ParalutionWrappers::Vector iterator
 
 #include "../tests.h"
+#include <deal.II/base/paralution.h>
 #include <deal.II/lac/paralution_vector.h>
-#include "paralution.hpp"
 
 void check()
 {
@@ -40,7 +40,7 @@ void check()
 
 int main()
 {
-  paralution::init_paralution();
+  Utilities::Paralution::Paralution_InitFinalize paralution(1);
 
   std::ofstream logfile("output");
   deallog << std::fixed;
@@ -50,6 +50,4 @@ int main()
   deallog.threshold_double(1.e-10);
 
   check();
-
-  paralution::stop_paralution();
 }

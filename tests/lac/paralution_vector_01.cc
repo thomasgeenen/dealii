@@ -18,8 +18,8 @@
 // Test ParalutionWrappers::Vector constructor
 
 #include "../tests.h"
+#include <deal.II/base/paralution.h>
 #include <deal.II/lac/paralution_vector.h>
-#include "paralution.hpp"
 
 template <typename Number>
 void check()
@@ -35,7 +35,7 @@ void check()
 
 int main()
 {
-  paralution::init_paralution();
+  Utilities::Paralution::Paralution_InitFinalize paralution(1);
 
   std::ofstream logfile("output");
   deallog << std::fixed;
@@ -47,6 +47,4 @@ int main()
   check<int>();
   check<float>();
   check<double>();
-
-  paralution::stop_paralution();
 }

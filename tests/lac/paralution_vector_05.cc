@@ -19,8 +19,8 @@
 // operator-=
 
 #include "../tests.h"
+#include <deal.II/base/paralution.h>
 #include <deal.II/lac/paralution_vector.h>
-#include "paralution.hpp"
 
 void check_1()
 {
@@ -58,7 +58,7 @@ void check_2()
 
 int main()
 {
-  paralution::init_paralution();
+  Utilities::Paralution::Paralution_InitFinalize paralution(1);
 
   std::ofstream logfile("output");
   deallog << std::fixed;
@@ -69,6 +69,4 @@ int main()
 
   check_1();
   check_2();
-
-  paralution::stop_paralution();
 }

@@ -24,7 +24,6 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/subscriptor.h>
 #include <deal.II/lac/sparse_matrix.h>
-#include <algorithm>
 
 #include <paralution.hpp>
 
@@ -370,6 +369,12 @@ namespace ParalutionWrappers
      * is used.
      */
     void sync();
+
+    /**
+     * Convert the paralution matrix to a different format. This function should
+     * only be called after convert_to_paralution_csr.
+     */
+    void convert_format(matrix_format format);
 
     /**
      * Return a constant reference to the underlying dealii::SparseMatrix.

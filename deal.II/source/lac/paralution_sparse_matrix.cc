@@ -137,6 +137,56 @@ namespace ParalutionWrappers
     else
       local_matrix.CopyFromAsync(sparse_matrix.paralution_matrix());
   }
+
+  template <typename Number>
+  void SparseMatrix<Number>::convert_format(matrix_format format)
+  {
+    if (is_local_matrix==false)
+    {
+      switch (format)
+      {
+        case DENSE :
+          {
+            local_matrix.ConvertToDense();
+            break;
+          }
+        case CSR :
+          {
+            local_matrix.ConvertToCSR();
+            break;
+          }
+        case MCSR :
+          {
+            local_matrix.ConvertToMCSR();
+            break;
+          }
+        case BCSR :
+          {
+            local_matrix.ConvertToBCSR();
+            break;
+          }
+        case COO :
+          {
+            local_matrix.ConvertToDIA();
+            break;
+          }
+        case ELL :
+          {
+            local_matrix.ConvertToELL();
+            break;
+          }
+        case HYB :
+          {
+            local_matrix.ConvertToHYB();
+            break;
+          }
+        default :
+          {
+            AssertThrow(false,ExcMessage("Wrong format of Paralution matrix."));
+          }
+      }
+    }
+  }
 }
 
 // Explicit instantiations

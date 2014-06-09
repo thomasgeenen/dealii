@@ -157,9 +157,10 @@ void unify_pretty_function (const std::string &filename)
  * Note that we can't do this if we run in MPI mode because then
  * MPI_InitFinalize already calls this function. Since every test
  * calls MPI_InitFinalize itself, we can't adjust the thread count
- * for this here.
+ * for this here. The same is true for Paralution, Paralution_InitFinalize
+ * calls set_thread_limit.
  */
-#ifndef DEAL_II_WITH_MPI
+#if !(defined DEAL_II_WITH_MPI) && !(defined DEAL_II_WITH_PARALUTION)
 struct LimitConcurrency
 {
   LimitConcurrency ()

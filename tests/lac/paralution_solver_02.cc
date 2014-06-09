@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iomanip>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/paralution.h>
 #include <deal.II/lac/paralution_sparse_matrix.h>
 #include <deal.II/lac/paralution_vector.h>
 #include <deal.II/lac/paralution_solver.h>
@@ -30,7 +31,7 @@
 
 int main()
 {
-  paralution::init_paralution();
+  Utilities::Paralution::Paralution_InitFinalize paralution(1);
 
   std::ofstream logfile("output");
   deallog << std::fixed;
@@ -69,6 +70,4 @@ int main()
     }
     solver.solve(A,u,f,p);
   }
-
-  paralution::stop_paralution();
 }

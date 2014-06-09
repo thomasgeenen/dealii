@@ -18,9 +18,9 @@
 // Test ParalutionWrappers::SparseMatrix
 
 #include "../tests.h"
+#include <deal.II/base/paralution.h>
 #include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/paralution_sparse_matrix.h>
-#include "paralution.hpp"
 
 template <typename Number>
 void check()
@@ -55,7 +55,7 @@ void check()
 
 int main()
 {
-  paralution::init_paralution();
+  Utilities::Paralution::Paralution_InitFinalize paralution(1);
 
   std::ofstream logfile("output");
   deallog << std::fixed;
@@ -66,7 +66,5 @@ int main()
 
   check<float>();
   check<double>();
-
-  paralution::stop_paralution();
 }
 
