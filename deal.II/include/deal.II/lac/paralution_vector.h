@@ -135,7 +135,6 @@ namespace ParalutionWrappers
      * Change the dimension of the vector to @p N. The vector is filled with
      * zeros.
      */
-    //TODO look to add fast
     void reinit(const size_type N);
 
     /**
@@ -443,6 +442,18 @@ namespace ParalutionWrappers
      * performs the asynchronous transfer in the background.
      */
     void move_to_host_async();
+
+    /**
+     * Print to a stream. @p precision denotes the desired precision with
+     * which values shall be printed, @p scientific whether scientific
+     * notation shall be used. If @p across is @p true then the vector is
+     * printed in a line, while if @p false then the elements are printed on a
+     * separate line each.
+     */
+    void print (std::ostream      &out,         
+                const unsigned int precision,   
+                const bool         scientific,  
+                const bool         across) const;
 
     /**
      * Synchronize the code when move_to_host_async or move_to_accelerator_async

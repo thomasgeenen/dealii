@@ -112,7 +112,7 @@ public:
   /**
    * Copy-Constructor. Dimension set to
    * that of V, all components are copied
-   * from V
+   * from V.
    */
   BlockVector (const BlockVector<Number> &V);
 
@@ -195,7 +195,7 @@ public:
                const InputIterator              end);
 
   /**
-   * Destructor. Clears memory
+   * Destructor. Clears memory.
    */
   ~BlockVector ();
 

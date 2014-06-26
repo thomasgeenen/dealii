@@ -240,6 +240,36 @@ namespace ParalutionWrappers
     local_vector.ScaleAdd2(0.,u.paralution_vector(),a,v.paralution_vector(),b);
     local_vector.AddScale(w.paralution_vector(),c);
   }
+
+
+
+  template <typename Number>
+  void Vector<Number>::print (std::ostream      &out,
+                              const unsigned int precision,
+                              const bool         scientific,
+                              const bool         across) const
+  {
+    AssertThrow (out, ExcIO());
+
+    // get a representation of the vector and loop over all the elements 
+    out.precision (precision);
+    if (scientific)
+      out.setf (std::ios::scientific, std::ios::floatfield);
+    else
+      out.setf (std::ios::fixed, std::ios::floatfield);
+
+    if (across)
+      for (size_type i=0; i<size(); ++i)
+        out << static_cast<double>(local_vector[i]) << ' ';
+    else
+      for (size_type i=0; i<size(); ++i)
+        out << static_cast<double>(local_vector[i]) << std::endl;
+    out << std::endl;
+
+    // restore the representation
+    // of the vector
+    AssertThrow (out, ExcIO());
+  }
 }
 
 // Explicit instantiations

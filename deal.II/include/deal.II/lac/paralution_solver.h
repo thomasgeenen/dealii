@@ -36,7 +36,8 @@ DEAL_II_NAMESPACE_OPEN
 namespace ParalutionWrappers
 {
   /**
-   * Base class for solver classes using the Paralution solvers.
+   * Base class for solver classes using the Paralution solvers except AMG which 
+   * is not derived from this class.
    *
    * @ingroup ParalutionWrappers
    * @author Bruno Turcksin 2013
@@ -68,10 +69,10 @@ namespace ParalutionWrappers
                        bool                            move_to_accelerator);
 
     /**
-     * Reference to the object that controls convergence of the iteratove
+     * Reference to the object that controls convergence of the iterative
      * solver. In fact, for these Paralution wrappers, Paralution does so
-     * itself, but we copy the data from this object solition process, and
-     * copy the data back into it afterwards.
+     * itself, but we copy the data from this object before starting solution 
+     * process, and copy the data back into it afterwards.
      */
     SolverControl &solver_control;
   };
@@ -133,7 +134,7 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
@@ -192,7 +193,7 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
@@ -246,7 +247,7 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
@@ -311,7 +312,7 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
@@ -366,7 +367,7 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
@@ -429,7 +430,7 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };
@@ -492,7 +493,134 @@ namespace ParalutionWrappers
 
   private:
     /**
-     * store a copy of the flags for this solver.
+     * Store a copy of the flags for this solver.
+     */
+    const AdditionalData additional_data;
+  };
+
+
+
+  /**
+   * An implementation of the solver interface using the Paralution GMRES
+   * solver.
+   *
+   * @ingroup ParalutionWrappers
+   * @author Bruno Turcksin, 2014
+   */
+  class SolverAMG 
+  {
+  public:
+    /**
+     * Standardized data struct to pipe additional data to the solver.
+     */
+    struct AdditionalData
+    {
+      /**
+       * Constructor. @p relaxation_parameter is used only with smoothed
+       * aggregation and is disregarded otherwise. @p over_interpolation is used
+       * only with aggregation and is disregared otherwise.
+       */
+      AdditionalData (const unsigned int verbose = 0,
+                      const mg_solver coarse_solver = gmres,
+                      const unsigned int n_unknowns_coarse_level = 300,
+                      const mg_solver smoother = richardson,
+                      const mg_preconditioner = multicolored_sor,
+                      const mg_cycle cycle = V_cycle,
+                      const mg_interpolation interpolation = smoothed_aggregation,
+                      const double coupling_strength = 0.01,
+                      const double relaxation_parameter = 2./3.,
+                      const double over_interpolation = 1.5);
+
+      /**
+       * Verbosity: 0 =  no output, 1 = print information at the
+       * start and at the end, 3 = print residual at each iteration.
+       */
+      unsigned int verbose;
+
+      /**
+       * Solver of the coarse system.
+       */
+      mg_solver coarse_solver;
+
+      /**
+       * Number of unknowns on the coarsest level.
+       */
+      unsigned int n_unknowns_coarse_level;
+
+      /**
+       * Smoother (pre- and post-smoothers).
+       */
+      mg_solver smoother;
+
+      /**
+       * Preconditioner of the smoother.
+       */
+      mg_preconditioner preconditioner;
+
+      /**
+       * Cycle used by the multigrid preconditioner: V cycle, W cycle, K
+       * cycle, or F cycle.
+       */
+      mg_cycle cycle;
+
+      /**
+       * Interpolation used by the multigrid preconditioner: smoothed
+       * aggregation or aggregation.
+       */
+      mg_interpolation interpolation;
+
+      /**
+       * Coupling strength.
+       */
+      double coupling_strength;
+
+      /**
+       * Relaxation parameter for smoothed interpolation aggregation.
+       */
+      double relaxation_parameter;
+
+      /**
+       * Over-interpolation parameter for aggregation.
+       */
+      double over_interpolation;
+    };
+
+    /**
+     * Constructor. AdditionalData is a structure that contains additional
+     * flags for tuning this particular solver.
+     */
+    SolverAMG (SolverControl        &cn,
+              const AdditionalData &data = AdditionalData());
+
+    /**
+     * Solve the linear system <tt>Ax=b</tt> using the AMG solver of
+     * Paralution. If the flag @p move_to_accelerator is set to true, the
+     * solver, the right-hand side, the matrix, and the solution vector are
+     * moved on the accelerator once the solver is built. The multigrid must be
+     * build on the CPU.
+     */
+    template <typename Number>
+    void solve (SparseMatrix<Number>     &A,
+                Vector<Number>           &x,
+                Vector<Number>           &b,
+                bool                      move_to_accelerator=false);
+
+    /**
+     * Access to object that controls convergence.
+     */
+    SolverControl &control() const;
+
+  private:
+    /**
+     * Reference to the object that controls convergence of the iterative
+     * solver. In fact, for these Paralution wrappers, Paralution does so
+     * itself, but we copy the data from this object before starting solution 
+     * process, and copy the data back into it afterwards.
+     */
+    SolverControl &solver_control;
+
+    /**
+     * Store a copy of the flags for this solver.
      */
     const AdditionalData additional_data;
   };

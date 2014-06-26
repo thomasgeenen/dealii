@@ -222,6 +222,207 @@ namespace ParalutionWrappers
 
     downcasted_ptr->Set(additional_data.levels,additional_data.power);
   }
+
+
+
+  /* -------------------------- PreconditionAMG --------------------------- */
+
+  template <typename Number>
+  PreconditionAMG<Number>::AdditionalData::AdditionalData(const unsigned int verbose,
+                                                          const mg_solver coarse_solver,
+                                                          const unsigned int n_unknowns_coarse_level,
+                                                          const unsigned int max_iter,
+                                                          const mg_cycle cycle,
+                                                          const mg_interpolation interpolation,
+                                                          const double coupling_strength,
+                                                          const double relaxation_parameter,
+                                                          const double over_interpolation)
+    :
+    verbose(verbose),
+    coarse_solver(coarse_solver),
+    n_unknowns_coarse_level(n_unknowns_coarse_level),
+    max_iter(max_iter),
+    cycle(cycle),
+    interpolation(interpolation),
+    coupling_strength(coupling_strength),
+    relaxation_parameter(relaxation_parameter),
+    over_interpolation(over_interpolation)
+  {}
+
+
+
+  template <typename Number>
+  PreconditionAMG<Number>::PreconditionAMG(const AdditionalData &additional_data)
+    :
+    coarse_solver(NULL)
+  {
+    this->preconditioner.reset(new paralution::AMG<paralution::LocalMatrix<Number>,
+                               paralution::LocalVector<Number>,Number>);
+
+    initialize(additional_data);
+  }
+
+
+
+  template <typename Number>
+  PreconditionAMG<Number>::~PreconditionAMG()
+  {
+    clear();
+  }
+
+
+
+  template <typename Number>
+  void PreconditionAMG<Number>::initialize(const AdditionalData &additional_data)
+  {
+    // Downcast the preconditioner pointer
+    paralution::AMG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
+      Number>* downcasted_ptr = static_cast<paralution::AMG<paralution::
+        LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
+
+    // Set the maximum number of iterations.
+    downcasted_ptr->InitMaxIter(additional_data.max_iter);
+
+    // Set the verbosity of the multigrid.
+    downcasted_ptr->Verbose(additional_data.verbose);
+
+    // Free the coarse level solver if necessary.
+    clear();
+
+    // Set the number of unknowns on the coarsest level.
+    downcasted_ptr->SetCoarsestLevel(additional_data.n_unknowns_coarse_level);
+
+    // Set the interpolation type.
+    switch (additional_data.interpolation)
+    {
+      case aggregation :
+        {
+          downcasted_ptr->SetInterpolation(paralution::Aggregation);
+          downcasted_ptr->SetOverInterp(additional_data.over_interpolation);
+          break;
+        }
+      case smoothed_aggregation :
+        {
+          downcasted_ptr->SetInterpolation(paralution::SmoothedAggregation);
+          downcasted_ptr->SetInterpRelax(additional_data.relaxation_parameter);
+          break;
+        }
+      default :
+        {
+          AssertThrow(false,ExcMessage("Unknown interpolation type for PreconditionAMG."));
+        }
+    }
+
+    // Set the coupling strength
+    downcasted_ptr->SetCouplingStrength(additional_data.coupling_strength);
+
+    // Set the type of cycle
+    switch (additional_data.cycle)
+    {
+      case V_cycle :
+        {
+          downcasted_ptr->SetCycle(paralution::Vcycle);
+          break;
+        }
+      case  W_cycle :
+        {
+          downcasted_ptr->SetCycle(paralution::Wcycle);
+          break;
+        }
+      case K_cycle :
+        {
+          downcasted_ptr->SetCycle(paralution::Kcycle);
+          break;
+        }
+      case F_cycle :
+        {
+          downcasted_ptr->SetCycle(paralution::Fcycle);
+        }
+      default :
+        {
+          AssertThrow(false,ExcMessage("Unknown cycle type for PreconditionAMG."));
+        }
+    }
+
+    // Use manual coarse grid solver.
+    downcasted_ptr->SetManualSolver(true);
+
+
+    // Coarse solver
+    switch (additional_data.coarse_solver)
+    {
+      case richardson :
+        {
+          paralution::FixedPoint<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+            Number> *cs = new paralution::FixedPoint<paralution::LocalMatrix<Number>,
+            paralution::LocalVector<Number>, Number>;
+          coarse_solver = cs;
+          break;
+        }
+      case cg :
+        {
+          paralution::CG<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+            Number> *cs = new paralution::CG<paralution::LocalMatrix<Number>,
+            paralution::LocalVector<Number>, Number>;
+          coarse_solver = cs;
+          break;
+        }
+      case cr :
+        {
+          paralution::CR<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+            Number> *cs = new paralution::CR<paralution::LocalMatrix<Number>,
+            paralution::LocalVector<Number>, Number>;
+          coarse_solver = cs;
+          break;
+        }
+      case bicgstab :
+        {
+          paralution::BiCGStab<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+            Number> *cs =  new paralution::BiCGStab<paralution::LocalMatrix<Number>,
+            paralution::LocalVector<Number>, Number>;
+          coarse_solver = cs;
+          break;
+        }
+      case gmres :
+        {
+          paralution::GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+            Number> *cs = new paralution::GMRES<paralution::LocalMatrix<Number>,
+            paralution::LocalVector<Number>, Number>;
+          coarse_solver = cs;
+          break;
+        }
+      case fgmres :
+        {
+          paralution::FGMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+            Number> *cs = new paralution::FGMRES<paralution::LocalMatrix<Number>,
+            paralution::LocalVector<Number>, Number>;
+          coarse_solver = cs;
+          break;
+        }
+      default :
+        {
+          AssertThrow(false,ExcMessage("Unknown coarse solver for PreconditionAMG."));
+        }
+    }
+
+    // Set the coarse solver and the verbosity of the coarse solver.
+    coarse_solver->Verbose(additional_data.verbose);
+    downcasted_ptr->SetSolver(*coarse_solver);
+  }
+
+
+
+  template <typename Number>
+  void PreconditionAMG<Number>::clear()
+  {
+    // Free the coarse solver.
+    if (coarse_solver!=NULL)
+      {
+        delete coarse_solver;
+        coarse_solver = NULL;
+      }
+  }
+
 }
 
 // Explicit instantiations
