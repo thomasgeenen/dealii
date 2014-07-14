@@ -36,7 +36,7 @@ DEAL_II_NAMESPACE_OPEN
 namespace ParalutionWrappers
 {
   /**
-   * Base class for solver classes using the Paralution solvers except AMG which 
+   * Base class for solver classes using the Paralution solvers except AMG which
    * is not derived from this class.
    *
    * @ingroup ParalutionWrappers
@@ -71,7 +71,7 @@ namespace ParalutionWrappers
     /**
      * Reference to the object that controls convergence of the iterative
      * solver. In fact, for these Paralution wrappers, Paralution does so
-     * itself, but we copy the data from this object before starting solution 
+     * itself, but we copy the data from this object before starting solution
      * process, and copy the data back into it afterwards.
      */
     SolverControl &solver_control;
@@ -507,7 +507,7 @@ namespace ParalutionWrappers
    * @ingroup ParalutionWrappers
    * @author Bruno Turcksin, 2014
    */
-  class SolverAMG 
+  class SolverAMG
   {
   public:
     /**
@@ -590,7 +590,7 @@ namespace ParalutionWrappers
      * flags for tuning this particular solver.
      */
     SolverAMG (SolverControl        &cn,
-              const AdditionalData &data = AdditionalData());
+               const AdditionalData &data = AdditionalData());
 
     /**
      * Solve the linear system <tt>Ax=b</tt> using the AMG solver of
@@ -614,7 +614,7 @@ namespace ParalutionWrappers
     /**
      * Reference to the object that controls convergence of the iterative
      * solver. In fact, for these Paralution wrappers, Paralution does so
-     * itself, but we copy the data from this object before starting solution 
+     * itself, but we copy the data from this object before starting solution
      * process, and copy the data back into it afterwards.
      */
     SolverControl &solver_control;

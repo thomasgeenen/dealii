@@ -65,8 +65,11 @@ namespace ParalutionWrappers
      */
     typedef dealii::types::global_dof_index size_type;
     typedef Number                          value_type;
+    typedef Number                          real_type;
     typedef Number                         *iterator;
     typedef const Number                   *const_iterator;
+    typedef value_type                     &reference;
+    typedef const value_type               &const_reference;
 
     /**
      * A variable that indicates whether this vector supports distributed data
@@ -450,9 +453,9 @@ namespace ParalutionWrappers
      * printed in a line, while if @p false then the elements are printed on a
      * separate line each.
      */
-    void print (std::ostream      &out,         
-                const unsigned int precision,   
-                const bool         scientific,  
+    void print (std::ostream      &out,
+                const unsigned int precision,
+                const bool         scientific,
                 const bool         across) const;
 
     /**
@@ -460,6 +463,16 @@ namespace ParalutionWrappers
      * is used.
      */
     void sync();
+
+    /**
+     * Swap the contents of this vector and the other vector @p v. One could
+     * do this operation with a temporary variable and copying over the data
+     * elements, but this function is significantly more efficient since it
+     * only swaps the pointers to the data of the two vectors and therefore
+     * does not need to allocate temporary storage and move data around. Note
+     * that the vectors need to be of the same size and base on the same map.
+     */
+    void swap (Vector<Number> &v);
 
     /**
      * Determine an estimate for the memory consumption (in bytes) of this

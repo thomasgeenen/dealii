@@ -18,6 +18,8 @@
 
 #ifdef DEAL_II_WITH_PARALUTION
 
+#include <algorithm>
+
 DEAL_II_NAMESPACE_OPEN
 
 namespace ParalutionWrappers
@@ -251,7 +253,7 @@ namespace ParalutionWrappers
   {
     AssertThrow (out, ExcIO());
 
-    // get a representation of the vector and loop over all the elements 
+    // get a representation of the vector and loop over all the elements
     out.precision (precision);
     if (scientific)
       out.setf (std::ios::scientific, std::ios::floatfield);
@@ -269,6 +271,13 @@ namespace ParalutionWrappers
     // restore the representation
     // of the vector
     AssertThrow (out, ExcIO());
+  }
+
+
+  template <typename Number>
+  void Vector<Number>::swap(Vector<Number> &v)
+  {
+    std::swap(&local_vector, &(v.paralution_vector()));
   }
 }
 

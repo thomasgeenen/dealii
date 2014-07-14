@@ -277,8 +277,8 @@ namespace ParalutionWrappers
   {
     // Downcast the preconditioner pointer
     paralution::AMG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-      Number>* downcasted_ptr = static_cast<paralution::AMG<paralution::
-        LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
+               Number>* downcasted_ptr = static_cast<paralution::AMG<paralution::
+                                         LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     // Set the maximum number of iterations.
     downcasted_ptr->InitMaxIter(additional_data.max_iter);
@@ -294,55 +294,55 @@ namespace ParalutionWrappers
 
     // Set the interpolation type.
     switch (additional_data.interpolation)
-    {
+      {
       case aggregation :
-        {
-          downcasted_ptr->SetInterpolation(paralution::Aggregation);
-          downcasted_ptr->SetOverInterp(additional_data.over_interpolation);
-          break;
-        }
+      {
+        downcasted_ptr->SetInterpolation(paralution::Aggregation);
+        downcasted_ptr->SetOverInterp(additional_data.over_interpolation);
+        break;
+      }
       case smoothed_aggregation :
-        {
-          downcasted_ptr->SetInterpolation(paralution::SmoothedAggregation);
-          downcasted_ptr->SetInterpRelax(additional_data.relaxation_parameter);
-          break;
-        }
+      {
+        downcasted_ptr->SetInterpolation(paralution::SmoothedAggregation);
+        downcasted_ptr->SetInterpRelax(additional_data.relaxation_parameter);
+        break;
+      }
       default :
-        {
-          AssertThrow(false,ExcMessage("Unknown interpolation type for PreconditionAMG."));
-        }
-    }
+      {
+        AssertThrow(false,ExcMessage("Unknown interpolation type for PreconditionAMG."));
+      }
+      }
 
     // Set the coupling strength
     downcasted_ptr->SetCouplingStrength(additional_data.coupling_strength);
 
     // Set the type of cycle
     switch (additional_data.cycle)
-    {
+      {
       case V_cycle :
-        {
-          downcasted_ptr->SetCycle(paralution::Vcycle);
-          break;
-        }
+      {
+        downcasted_ptr->SetCycle(paralution::Vcycle);
+        break;
+      }
       case  W_cycle :
-        {
-          downcasted_ptr->SetCycle(paralution::Wcycle);
-          break;
-        }
+      {
+        downcasted_ptr->SetCycle(paralution::Wcycle);
+        break;
+      }
       case K_cycle :
-        {
-          downcasted_ptr->SetCycle(paralution::Kcycle);
-          break;
-        }
+      {
+        downcasted_ptr->SetCycle(paralution::Kcycle);
+        break;
+      }
       case F_cycle :
-        {
-          downcasted_ptr->SetCycle(paralution::Fcycle);
-        }
+      {
+        downcasted_ptr->SetCycle(paralution::Fcycle);
+      }
       default :
-        {
-          AssertThrow(false,ExcMessage("Unknown cycle type for PreconditionAMG."));
-        }
-    }
+      {
+        AssertThrow(false,ExcMessage("Unknown cycle type for PreconditionAMG."));
+      }
+      }
 
     // Use manual coarse grid solver.
     downcasted_ptr->SetManualSolver(true);
@@ -350,60 +350,60 @@ namespace ParalutionWrappers
 
     // Coarse solver
     switch (additional_data.coarse_solver)
-    {
+      {
       case richardson :
-        {
-          paralution::FixedPoint<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
-            Number> *cs = new paralution::FixedPoint<paralution::LocalMatrix<Number>,
-            paralution::LocalVector<Number>, Number>;
-          coarse_solver = cs;
-          break;
-        }
+      {
+        paralution::FixedPoint<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+                   Number> *cs = new paralution::FixedPoint<paralution::LocalMatrix<Number>,
+        paralution::LocalVector<Number>, Number>;
+        coarse_solver = cs;
+        break;
+      }
       case cg :
-        {
-          paralution::CG<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
-            Number> *cs = new paralution::CG<paralution::LocalMatrix<Number>,
-            paralution::LocalVector<Number>, Number>;
-          coarse_solver = cs;
-          break;
-        }
+      {
+        paralution::CG<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+                   Number> *cs = new paralution::CG<paralution::LocalMatrix<Number>,
+        paralution::LocalVector<Number>, Number>;
+        coarse_solver = cs;
+        break;
+      }
       case cr :
-        {
-          paralution::CR<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
-            Number> *cs = new paralution::CR<paralution::LocalMatrix<Number>,
-            paralution::LocalVector<Number>, Number>;
-          coarse_solver = cs;
-          break;
-        }
+      {
+        paralution::CR<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+                   Number> *cs = new paralution::CR<paralution::LocalMatrix<Number>,
+        paralution::LocalVector<Number>, Number>;
+        coarse_solver = cs;
+        break;
+      }
       case bicgstab :
-        {
-          paralution::BiCGStab<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
-            Number> *cs =  new paralution::BiCGStab<paralution::LocalMatrix<Number>,
-            paralution::LocalVector<Number>, Number>;
-          coarse_solver = cs;
-          break;
-        }
+      {
+        paralution::BiCGStab<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+                   Number> *cs =  new paralution::BiCGStab<paralution::LocalMatrix<Number>,
+        paralution::LocalVector<Number>, Number>;
+        coarse_solver = cs;
+        break;
+      }
       case gmres :
-        {
-          paralution::GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
-            Number> *cs = new paralution::GMRES<paralution::LocalMatrix<Number>,
-            paralution::LocalVector<Number>, Number>;
-          coarse_solver = cs;
-          break;
-        }
+      {
+        paralution::GMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+                   Number> *cs = new paralution::GMRES<paralution::LocalMatrix<Number>,
+        paralution::LocalVector<Number>, Number>;
+        coarse_solver = cs;
+        break;
+      }
       case fgmres :
-        {
-          paralution::FGMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
-            Number> *cs = new paralution::FGMRES<paralution::LocalMatrix<Number>,
-            paralution::LocalVector<Number>, Number>;
-          coarse_solver = cs;
-          break;
-        }
+      {
+        paralution::FGMRES<paralution::LocalMatrix<Number>, paralution::LocalVector<Number>,
+                   Number> *cs = new paralution::FGMRES<paralution::LocalMatrix<Number>,
+        paralution::LocalVector<Number>, Number>;
+        coarse_solver = cs;
+        break;
+      }
       default :
-        {
-          AssertThrow(false,ExcMessage("Unknown coarse solver for PreconditionAMG."));
-        }
-    }
+      {
+        AssertThrow(false,ExcMessage("Unknown coarse solver for PreconditionAMG."));
+      }
+      }
 
     // Set the coarse solver and the verbosity of the coarse solver.
     coarse_solver->Verbose(additional_data.verbose);

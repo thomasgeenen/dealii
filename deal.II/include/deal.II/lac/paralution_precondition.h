@@ -45,7 +45,8 @@ namespace ParalutionWrappers
    * Preconditioner for the smoother of the multigrid.
    */
   enum mg_preconditioner {jacobi, sgs, multicolored_sgs, multicolored_sor, ilu,
-      ilut, multicolored_ilu};
+                          ilut, multicolored_ilu
+                         };
 
   /**
    * Solver used as smoother and to solve the coarse system of the multigrid.
