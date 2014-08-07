@@ -79,8 +79,8 @@ inconvenience this causes.
   inheritance is gone. For the most part, this should not lead to any
   incompatibilities except in cases where you accessed members of
   DataOutBase through their derived classes. For example, it was possible
-  to write <code>DataOut@<2@>::Patch@<2,2@></code> even though the
-  <code>Patch</code> class is actually declared in DataOutBase. Since
+  to write DataOut::Patch even though the
+  Patch class is actually declared in DataOutBase. Since
   the inheritance is now gone, this is no longer possible and one
   actually has to write DataOutBase::Patch instead. Using this form
   turns out to be compatible also with older versions of deal.II.
@@ -97,6 +97,49 @@ inconvenience this causes.
 
 
 <ol>
+
+  <li> New: Added CylindricalManifold descritpion.
+  <br>
+  This class allows refinement of cylindrical manifolds. It is a good
+  companion for GridGenerator::cylinder() and the perfect companion
+  for GridGenerator::cylinder_shell().
+  <br>
+  (Luca Heltai, 2014/08/06)
+  </li>
+
+  <li> New: Added support for curved interior cells for all Triangulation
+  dimensions.
+  <br>
+  A new Manifold<dim,spacedim> class was introduced which only contains the
+  interface needed by Triangulation to refine objects, leaving all boundary
+  related functions in the class Boundary<dim,spacedim>, which was made
+  derived from Manifold<dim,spacedim>. <br>
+  This new construction allows for curved interior cells, and custom refinement
+  strategies. At the moment the following Manifolds are supported:
+  <ul>
+  <li> FlatManifold<dim,spacedim>: This class replaces the old
+  StraightBoundary<dim,spacedim>, and it adds support for periodic
+  manifolds. This is the simplest class one can use to create new Manifold classes;
+  </li>
+  <li> ManifoldChart<dim,spacedim,chartdim>: This is one of the most general Manifold
+  one can think of. The user can overload the functions ManifoldChart::pull_back() and
+  ManifoldChart::push_forward(), to obtain a very general curved geometry, following
+  concepts typical of elasticity;
+  </li>
+  <li> SphericalManifold<dim,spacedim>: A simple implementation of spherical coordinates
+  transformations. This manifold allows hyper shells with curved interior cells which
+  follow the natural shape of the shell;
+  </li>
+  </ul>
+  <br>
+  The functions
+  Triangulation::set_boundary() and Triangulation::get_boundary() can still be used to
+  set and get Boundary objects instead of Manifold ones. For the get function, an exception
+  is thrown if a conversion to a valid Boundary class cannot be made on the fly.
+  <br>
+  (Luca Heltai, 2014/08/06)
+  </li>
+
   <li> Ported: The build system now supports CMake 3.0.
   <br>
   (Matthias Maier, 2014/07/15)
@@ -190,6 +233,20 @@ inconvenience this causes.
 <h3>Specific improvements</h3>
 
 <ol>
+  <li> New: TrilinosWrappers::PreconditionAMG can now be initialized from an
+  object of type Epetra_RowMatrix, which allows using it with more arbitrary
+  matrix objects, including matrix-free methods.
+  <br>
+  (Martin Kronbichler, 2014/08/06)
+  </li>
+
+  <li> Fixed: The FE_Nedelec element computed face interpolation matrices
+  wrongly for elements of order p>1. This also led to trouble computing
+  hanging node constraints in the context of hp adaptivity. This is now fixed.
+  <br>
+  (Alexander Grayver, 2014/08/05)
+  </li>
+
   <li> New: The function GridTools::get_patch_around_cell() extracts
   the set of cells that surround a single cell. The new functions
   DoFTools::count_dofs_on_patch() and DoFTools::get_dofs_on_patch()
