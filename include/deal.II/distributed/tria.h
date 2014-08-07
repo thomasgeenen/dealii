@@ -88,7 +88,11 @@ namespace internal
       typedef p4est_quadrant_t     quadrant;
       typedef p4est_topidx_t       topidx;
       typedef p4est_locidx_t       locidx;
+#if DEAL_II_P4EST_VERSION_GTE(0,3,4,3)
+      typedef p4est_connect_type_t balance_type;
+#else
       typedef p4est_balance_type_t balance_type;
+#endif
       typedef p4est_ghost_t        ghost;
     };
 
@@ -101,7 +105,11 @@ namespace internal
       typedef p8est_quadrant_t     quadrant;
       typedef p4est_topidx_t       topidx;
       typedef p4est_locidx_t       locidx;
+#if DEAL_II_P4EST_VERSION_GTE(0,3,4,3)
+      typedef p8est_connect_type_t balance_type;
+#else
       typedef p8est_balance_type_t balance_type;
+#endif
       typedef p8est_ghost_t        ghost;
     };
 
@@ -168,7 +176,8 @@ namespace parallel
      * load-balanced, fully distributed mesh. Use of this class is
      * explained in step-40, step-32, the @ref distributed documentation
      * module, as well as the @ref distributed_paper . See there for more
-     * information.
+     * information. This class satisfies the requirements outlined in
+     * @ref GlossMeshAsAContainer "Meshes as containers".
      *
      * @note This class does not support anisotropic refinement, because
      * it relies on the p4est library that does not support this. Attempts

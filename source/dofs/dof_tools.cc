@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // $Id$
 //
-// Copyright (C) 1999 - 2013 by the deal.II authors
+// Copyright (C) 1999 - 2014 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -14,7 +14,6 @@
 //
 // ---------------------------------------------------------------------
 
-#include <deal.II/base/multithread_info.h>
 #include <deal.II/base/thread_management.h>
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/table.h>
@@ -1944,7 +1943,6 @@ namespace DoFTools
     Assert(level > 0 && level < dof_handler.get_tria().n_levels(),
            ExcIndexRange(level, 1, dof_handler.get_tria().n_levels()));
 
-    typename DH::level_cell_iterator cell;
     typename DH::level_cell_iterator pcell = dof_handler.begin(level-1);
     typename DH::level_cell_iterator endc = dof_handler.end(level-1);
 
@@ -1953,10 +1951,12 @@ namespace DoFTools
 
     for (unsigned int block = 0; pcell != endc; ++pcell)
       {
-        if (!pcell->has_children()) continue;
+        if (!pcell->has_children())
+          continue;
+
         for (unsigned int child=0; child<pcell->n_children(); ++child)
           {
-            cell = pcell->child(child);
+            const typename DH::level_cell_iterator cell = pcell->child(child);
 
             // For hp, only this line here would have to be replaced.
             const FiniteElement<DH::dimension> &fe = dof_handler.get_fe();
@@ -2112,6 +2112,69 @@ namespace DoFTools
               }
           }
       }
+  }
+
+
+
+  template <class DH>
+  unsigned int
+  count_dofs_on_patch (const std::vector<typename DH::active_cell_iterator> &patch)
+  {
+    std::set<types::global_dof_index> dofs_on_patch;
+    std::vector<types::global_dof_index> local_dof_indices;
+
+    // loop over the cells in the patch and get the DoFs on each.
+    // add all of them to a std::set which automatically makes sure
+    // all duplicates are ignored
+    for(unsigned int i=0; i<patch.size(); ++i)
+      {
+        const typename DH::active_cell_iterator cell = patch[i];
+        Assert (cell->is_artificial() == false,
+                ExcMessage("This function can not be called with cells that are "
+                           "not either locally owned or ghost cells."));
+        local_dof_indices.resize (cell->get_fe().dofs_per_cell);
+        cell->get_dof_indices (local_dof_indices);
+        dofs_on_patch.insert (local_dof_indices.begin(),
+                              local_dof_indices.end());
+      }
+
+    // now return the number of DoFs (duplicates were ignored)
+    return dofs_on_patch.size();
+  }
+
+
+
+  template <class DH>
+  std::vector<types::global_dof_index>
+  get_dofs_on_patch (const std::vector<typename DH::active_cell_iterator> &patch)
+  {
+      std::set<types::global_dof_index> dofs_on_patch;
+      std::vector<types::global_dof_index> local_dof_indices;
+
+      // loop over the cells in the patch and get the DoFs on each.
+      // add all of them to a std::set which automatically makes sure
+      // all duplicates are ignored
+      for(unsigned int i=0; i<patch.size(); ++i)
+        {
+          const typename DH::active_cell_iterator cell = patch[i];
+          Assert (cell->is_artificial() == false,
+                  ExcMessage("This function can not be called with cells that are "
+                             "not either locally owned or ghost cells."));
+          local_dof_indices.resize (cell->get_fe().dofs_per_cell);
+          cell->get_dof_indices (local_dof_indices);
+          dofs_on_patch.insert (local_dof_indices.begin(),
+                                local_dof_indices.end());
+        }
+
+    Assert (dofs_on_patch.size() == count_dofs_on_patch<DH>(patch),
+            ExcInternalError());
+
+    // return a vector with the content of the set above. copying
+    // also ensures that we retain sortedness as promised in the
+    // documentation and as necessary to retain the block structure
+    // also on the local system
+    return std::vector<types::global_dof_index> (dofs_on_patch.begin(),
+                                                 dofs_on_patch.end());
   }
 
 

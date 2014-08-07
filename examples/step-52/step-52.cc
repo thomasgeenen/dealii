@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * $Id: step-52.cc 30526 2013-08-29 20:06:27Z felix.gruber $
+ * $Id$
  *
  * Copyright (C) 2014 by the deal.II authors
  *
@@ -335,7 +335,7 @@ namespace Step52
 
 
 
-  // @sect5{<code>Diffusion::output_results}
+  // @sect5{<code>Diffusion::output_results</code>}
   //
   // We output the solution in vtu files.
   void Diffusion::output_results(unsigned int time_step,TimeStepping::runge_kutta_method method) const
