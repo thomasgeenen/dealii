@@ -1,4 +1,4 @@
-//----------------------------  cylindrical_manifold_01.cc  ---------------------------
+//----------------------------  function_manifold_chart ---------------------------
 //    Copyright (C) 2011, 2013, 2014 by the mathLab team.
 //
 //    This file is subject to LGPL and may not be  distributed
@@ -6,10 +6,10 @@
 //    to the file deal.II/doc/license.html for the  text  and
 //    further information on this license.
 //
-//----------------------------  cylindrical_manifold_01.cc  ---------------------------
+//---------------------------- function_manifold_chart ---------------------------
 
 
-// Test cylindrical manifold on cylinder shells.
+// Test the identity Manifold.
 
 #include "../tests.h"
 #include <fstream>
@@ -33,17 +33,34 @@ void test(unsigned int ref=1)
 	  << ", spacedim " << spacedim << std::endl;
   
   // Here the only allowed axis is z. In cylinder the default is x.
-  CylindricalManifold<dim,spacedim> manifold(2);
+  std::string push_forward_expression;
+  std::string pull_back_expression;
+
+  switch(spacedim) {
+  case 2:
+    push_forward_expression = "x^2; y^2";
+    pull_back_expression = "sqrt(x); sqrt(y)";
+    break;
+  case 3:
+    push_forward_expression = "x^2; y^2; z^2";
+    pull_back_expression = "sqrt(x); sqrt(y); sqrt(z)";
+    break;
+  default:
+    Assert(false, ExcInternalError());
+  }
   
+  FunctionManifold<dim,spacedim,spacedim> manifold(push_forward_expression, 
+							pull_back_expression);
+
   Triangulation<dim,spacedim> tria;
-  GridGenerator::cylinder_shell (tria, .5, .1, .25);
+  GridGenerator::hyper_cube (tria, 0, 1);
 
   for(typename Triangulation<dim,spacedim>::active_cell_iterator cell = tria.begin_active(); cell != tria.end(); ++cell) {
     cell->set_all_manifold_ids(1);
   }
   
   tria.set_manifold(1, manifold);
-  tria.refine_global(1);
+  tria.refine_global(2);
   
   GridOut gridout;
   gridout.write_msh(tria, deallog.get_file_stream());
@@ -56,6 +73,8 @@ int main ()
   deallog.depth_console(0);
   deallog.threshold_double(1.e-10);
   
+  
+  test<2,2>();
   test<3,3>();
   
   return 0;

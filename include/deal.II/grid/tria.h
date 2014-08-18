@@ -23,6 +23,7 @@
 #include <deal.II/base/subscriptor.h>
 #include <deal.II/base/smartpointer.h>
 #include <deal.II/base/geometry_info.h>
+#include <deal.II/base/iterator_range.h>
 #include <deal.II/base/std_cxx1x/function.h>
 #include <deal.II/grid/tria_iterator_selector.h>
 #include <deal.II/grid/tria_faces.h>
@@ -1244,7 +1245,7 @@ public:
    * boundary description has been explicitly
    * set using set_manifold().
    */
-    static const StraightBoundary<dim,spacedim> straight_boundary;
+  static const StraightBoundary<dim,spacedim> straight_boundary;
 
   /**
    * Declare some symbolic names
@@ -1619,7 +1620,7 @@ public:
     virtual
     void
     create_notification (const Triangulation<dim, spacedim> &tria);
-  }; 
+  };
 
   /**
    * A structure that is used as an
@@ -1867,7 +1868,7 @@ public:
   void set_manifold (const types::manifold_id   number,
                      const Manifold<dim,spacedim> &manifold_object);
 
-    
+
   /**
    * Reset those parts of the triangulation with the given manifold_id
    * to use a FlatManifold object. This is the default state of a
@@ -1897,7 +1898,7 @@ public:
    * @ingroup manifold
    *
    * @see @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
-   */    
+   */
   const Manifold<dim,spacedim> &get_manifold (const types::manifold_id number) const;
 
   /**
@@ -1912,7 +1913,7 @@ public:
    * @see @ref GlossBoundaryIndicator "Glossary entry on boundary indicators"
    */
   std::vector<types::boundary_id> get_boundary_indicators() const;
-    
+
   /**
    * Returns a vector containing all manifold indicators assigned to
    * the objects of this Triangulation. Note, that each manifold
@@ -1925,7 +1926,7 @@ public:
    * @see @ref GlossManifoldIndicator "Glossary entry on manifold indicators"
    */
   std::vector<types::manifold_id> get_manifold_ids() const;
-    
+
   /**
    *  Copy a triangulation. This operation is not cheap, so you should
    *  be careful with using this. We do not implement this function as
@@ -2542,6 +2543,94 @@ public:
    *  Return an iterator pointing to the last active cell.
    */
   active_cell_iterator last_active () const;
+  /*@}*/
+
+  /**
+   *  @name Cell iterator functions returning ranges of iterators
+   */
+
+  /**
+   * Return an iterator range that contains all cells (active or not)
+   * that make up this triangulation. Such a range is useful to
+   * initialize range-based for loops as supported by C++11. See the
+   * example in the documentation of active_cell_iterators().
+   *
+   * @return The half open range <code>[this->begin(), this->end())</code>
+   *
+   * @ingroup CPP11
+   */
+  IteratorRange<cell_iterator>        cell_iterators () const;
+
+  /**
+   * Return an iterator range that contains all active cells
+   * that make up this triangulation. Such a range is useful to
+   * initialize range-based for loops as supported by C++11,
+   * see also @ref CPP11 "C++11 standard".
+   *
+   * Range-based for loops are useful in that they require much less
+   * code than traditional loops (see
+   * <a href="http://en.wikipedia.org/wiki/C%2B%2B11#Range-based_for_loop">here</a>
+   * for a discussion of how they work). An example is that without
+   * range-based for loops, one often writes code such as the following
+   * (assuming for a moment that our goal is setting the user flag
+   * on every active cell):
+   * @code
+   *   Triangulation<dim> triangulation;
+   *   ...
+   *   typename Triangulation<dim>::active_cell_iterator
+   *     cell = triangulation.begin_active(),
+   *     endc = triangulation.end();
+   *   for (; cell!=endc; ++cell)
+   *     cell->set_user_flag();
+   * @endcode
+   * Using C++11's range-based for loops, this is now entirely
+   * equivalent to the following:
+   * @code
+   *   Triangulation<dim> triangulation;
+   *   ...
+   *   for (auto cell : triangulation.active_cell_iterators())
+   *     cell->set_user_flag();
+   * @endcode
+   * To use this feature, you need a compiler that supports C++11.
+   *
+   * @return The half open range <code>[this->begin_active(), this->end())</code>
+   *
+   * @ingroup CPP11
+   */
+  IteratorRange<active_cell_iterator> active_cell_iterators () const;
+
+  /**
+   * Return an iterator range that contains all cells (active or not)
+   * that make up the given level of this triangulation. Such a range is useful to
+   * initialize range-based for loops as supported by C++11. See the
+   * example in the documentation of active_cell_iterators().
+   *
+   * @param[in] level A given level in the refinement hierarchy of this
+   *   triangulation.
+   * @return The half open range <code>[this->begin(level), this->end(level))</code>
+   *
+   * @pre level must be less than this->n_levels().
+   *
+   * @ingroup CPP11
+   */
+  IteratorRange<cell_iterator>        cell_iterators_on_level (const unsigned int level) const;
+
+  /**
+   * Return an iterator range that contains all active cells
+   * that make up the given level of this triangulation. Such a range is useful to
+   * initialize range-based for loops as supported by C++11. See the
+   * example in the documentation of active_cell_iterators().
+   *
+   * @param[in] level A given level in the refinement hierarchy of this
+   *   triangulation.
+   * @return The half open range <code>[this->begin_active(level), this->end(level))</code>
+   *
+   * @pre level must be less than this->n_levels().
+   *
+   * @ingroup CPP11
+   */
+  IteratorRange<active_cell_iterator> active_cell_iterators_on_level (const unsigned int level) const;
+
   /*@}*/
 
   /*---------------------------------------*/
@@ -3375,7 +3464,7 @@ private:
    * a pointer.
    */
   std::map<unsigned int, types::boundary_id> *vertex_to_boundary_id_map_1d;
-	
+
 
   /**
    * A map that relates the number of a boundary vertex to the
@@ -3556,10 +3645,11 @@ Triangulation<dim,spacedim>::save (Archive &ar,
 
   ar &check_for_distorted_cells;
 
-  if (dim == 1) {
-    ar &vertex_to_boundary_id_map_1d;
-    ar &vertex_to_manifold_id_map_1d;
-  }
+  if (dim == 1)
+    {
+      ar &vertex_to_boundary_id_map_1d;
+      ar &vertex_to_manifold_id_map_1d;
+    }
 }
 
 
@@ -3592,10 +3682,11 @@ Triangulation<dim,spacedim>::load (Archive &ar,
                       "same setting with regard to reporting distorted "
                       "cell as the one previously stored."));
 
-  if (dim == 1) {
-    ar &vertex_to_boundary_id_map_1d;
-    ar &vertex_to_manifold_id_map_1d;
-  }
+  if (dim == 1)
+    {
+      ar &vertex_to_boundary_id_map_1d;
+      ar &vertex_to_manifold_id_map_1d;
+    }
 
   // trigger the create signal to indicate
   // that new content has been imported into
@@ -3648,12 +3739,12 @@ template <> unsigned int Triangulation<1,3>::max_adjacent_cells () const;
 
 // -------------------------------------------------------------------
 // Explicit invalid things...
-template <> 
-const Manifold<2,1> & Triangulation<2, 1>::get_manifold(const types::manifold_id) const;
-template <> 
-const Manifold<3,1> & Triangulation<3, 1>::get_manifold(const types::manifold_id) const;
-template <> 
-const Manifold<3,2> & Triangulation<3, 2>::get_manifold(const types::manifold_id) const;
+template <>
+const Manifold<2,1> &Triangulation<2, 1>::get_manifold(const types::manifold_id) const;
+template <>
+const Manifold<3,1> &Triangulation<3, 1>::get_manifold(const types::manifold_id) const;
+template <>
+const Manifold<3,2> &Triangulation<3, 2>::get_manifold(const types::manifold_id) const;
 
 
 #endif // DOXYGEN

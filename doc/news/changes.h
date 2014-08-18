@@ -97,6 +97,23 @@ inconvenience this causes.
 
 
 <ol>
+  <li> New: There is now a documentation module that describes
+  deal.II's support for and interaction with the
+  @ref CPP11 "C++11 standard".
+  <br>
+  (Wolfgang Bangerth, 2014/08/14)
+  </li>
+
+  <li> New: Added FunctionManifold descritpion.
+  <br>
+  This class allows arbitrary manifold descriptions, in which you have
+  an explicit Function<chartdim> for the ManifoldChart::push_forward()
+  method, and an explicit Function<spacedim> for ManifoldChart::pull_back()
+  method (or an expression for both). In these cases, you can construct a
+  Manifold description on the fly.
+  <br>
+  (Luca Heltai, 2014/08/07)
+  </li>
 
   <li> New: Added CylindricalManifold descritpion.
   <br>
@@ -233,6 +250,26 @@ inconvenience this causes.
 <h3>Specific improvements</h3>
 
 <ol>
+  <li> Fixed: Support SLEPc 3.5 by disabling SDFOLD spectrum transformation type
+  that has been removed from SLEPc. Therefore, TransformationSpectrumFolding 
+  cannot be used with newer SLEPc versions. 
+  <br>
+  (Alexander Grayver, 2014/08/15)
+  </li>
+
+  <li> New: To better support applications that want to use C++11's
+  <a href="http://en.wikipedia.org/wiki/C%2B%2B11#Range-based_for_loop">range-based
+  for loops</a>, there are now functions Triangulation::cell_iterators(),
+  Triangulation::all_cell_iterators() and similarly in classes DoFHandler
+  and hp::DoFHandler
+  that return a range object that can then be used in range-based for loops.
+  The underlying implementation uses the new IteratorRange class.
+  <br>
+  See the new @ref CPP11 "C++11" page for more information.
+  <br>
+  (Wolfgang Bangerth, 2014/08/07)
+  </li>
+
   <li> New: TrilinosWrappers::PreconditionAMG can now be initialized from an
   object of type Epetra_RowMatrix, which allows using it with more arbitrary
   matrix objects, including matrix-free methods.
