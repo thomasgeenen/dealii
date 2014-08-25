@@ -97,6 +97,39 @@ inconvenience this causes.
 
 
 <ol>
+  <li> Updated: The version of BOOST that comes bundled with deal.II has 
+  been updated to 1.56.0.
+  <br>
+  (Wolfgang Bangerth, 2014/08/19)
+  </li>
+
+  <li> New: There is now a GridGenerator::flatten_triangulation()
+  taking a Triangulation<dim, spacedim_1> as input and returning
+  a Triangulation<dim, spacedim_2> as output. The output
+  triangulation will contain a single level with all active
+  cells of the input triangulation, and will be topologically
+  equivalent to the input triangulation. If the two spacedimensions
+  are equal, then this function will copy the triangulation
+  removing all levels, e.g., flattening it. If the two spacedimensions
+  are different, then this function will copy the vertices only
+  up to the smallest spacedimension parameter. <br>
+  Using this function, you can create a Triangulation<2,3> from
+  a Triangulation<2,2> or project to the plane z=0 your
+  Triangulation<2,3>. No checks are performed on the validity of
+  the resulting Triangulation.
+  <br>
+  (Luca Heltai, 2014/08/19)
+  </li>
+
+  <li> Fixed: Newer versions of GCC (e.g. 4.9.x) are no longer compatible
+  with BOOST 1.46. Consequently, the CMake scripts now require at least
+  BOOST 1.48 in order to use a BOOST version found on the system. If no
+  installed BOOST library is found, or if the version is older than 1.48,
+  CMake will simply take the one that comes bundled with deal.II
+  <br>
+  (Wolfgang Bangerth, 2014/08/19)
+  </li>
+
   <li> New: There is now a documentation module that describes
   deal.II's support for and interaction with the
   @ref CPP11 "C++11 standard".
@@ -250,6 +283,30 @@ inconvenience this causes.
 <h3>Specific improvements</h3>
 
 <ol>
+  <li> Optimize construction of high-order FE_Nedelec by moving out some 
+  non-essential computations. Namely, construct restriction and prolongation 
+  matrices on first request. This reduces time spent in FE_Nedelec constructor
+  substantially.
+  <br>
+  (Alexander Grayver, 2014/08/22)
+  </li>
+
+  <li> Changed: The functions GridTools::extract_boundary_mesh() and
+  GridTools::create_union_triangulation() have been moved to
+  GridGenerator::extract_boundary_mesh() and
+  GridGenerator::create_union_triangulation() since, conceptually, they
+  generate meshes. The old functions have been retained but are now
+  deprecated.
+  <br>
+  (Wolfgang Bangerth, 2014/08/19)
+  </li>
+
+  <li> New: TriaAccessor::measure() is now also implemented for faces of
+  3d cells as long as the face is planar.
+  <br>
+  (Kevin Drzycimski, 2014/08/19)
+  </li>
+
   <li> Fixed: Support SLEPc 3.5 by disabling SDFOLD spectrum transformation type
   that has been removed from SLEPc. Therefore, TransformationSpectrumFolding 
   cannot be used with newer SLEPc versions. 
@@ -705,12 +762,6 @@ inconvenience this causes.
   LAPACKFullMatrix.
   <br>
   (Martin Kronbichler, 2014/02/03)
-
-  <li>Added: A sanity check for the full link interface at configure time.
-  Hopefully this prevents some people from compiling the whole library just
-  to hit a link error.
-  <br>
-  (Matthias Maier, 2014/02/01)
 
   <li>Fixed: The build system does no longer record full paths to system
   libraries but uses the appropriate short names instead.

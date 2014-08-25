@@ -78,6 +78,7 @@ namespace
 
 namespace
 {
+#ifdef DEAL_II_WITH_ZLIB
   // the functions in this namespace are
   // taken from the libb64 project, see
   // http://sourceforge.net/projects/libb64
@@ -219,7 +220,7 @@ namespace
 
     return encoded_data;
   }
-
+#endif
 
 
 #ifdef DEAL_II_WITH_ZLIB
@@ -3671,7 +3672,7 @@ namespace DataOutBase
     double hmax=patches[0].data(0,0);
 
     for (typename std::vector<Patch<dim,spacedim> >::const_iterator patch=patches.begin();
-	 patch != patches.end(); ++patch)
+         patch != patches.end(); ++patch)
       {
         const unsigned int n_subdivisions = patch->n_subdivisions;
 
@@ -3952,6 +3953,18 @@ namespace DataOutBase
                   const EpsFlags                          &flags,
                   std::ostream                            &out)
   {
+    // not implemented, see the documentation of the function
+    AssertThrow (dim==2, ExcNotImplemented());
+  }
+
+
+  template <int spacedim>
+  void write_eps (const std::vector<Patch<2,spacedim> > &patches,
+                  const std::vector<std::string>          &/*data_names*/,
+                  const std::vector<std_cxx1x::tuple<unsigned int, unsigned int, std::string> > &,
+                  const EpsFlags                          &flags,
+                  std::ostream                            &out)
+  {
     Assert (out, ExcIO());
 
 #ifndef DEAL_II_WITH_MPI
@@ -3973,9 +3986,6 @@ namespace DataOutBase
     if (patches.size() == 0)
       return;
 #endif
-
-    // Do not allow volume rendering
-    AssertThrow (dim==2, ExcNotImplemented());
 
     const unsigned int old_precision = out.precision();
 
@@ -4011,7 +4021,7 @@ namespace DataOutBase
     // note that since dim==2, we
     // have exactly four vertices per
     // patch and per cell
-    for (typename std::vector<Patch<dim,spacedim> >::const_iterator patch=patches.begin();
+    for (typename std::vector<Patch<2,spacedim> >::const_iterator patch=patches.begin();
          patch!=patches.end(); ++patch)
       {
         const unsigned int n_subdivisions = patch->n_subdivisions;
