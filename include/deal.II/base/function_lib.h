@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // $Id$
 //
-// Copyright (C) 1999 - 2013 by the deal.II authors
+// Copyright (C) 1999 - 2014 by the deal.II authors
 //
 // This file is part of the deal.II library.
 //
@@ -23,7 +23,7 @@
 #include <deal.II/base/point.h>
 #include <deal.II/base/table.h>
 
-#include <deal.II/base/std_cxx1x/array.h>
+#include <deal.II/base/std_cxx11/array.h>
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -1208,6 +1208,9 @@ namespace Functions
    * box since it frequently happens that a point lies just outside the box
    * by an amount on the order of numerical roundoff.)
    *
+   * @note The use of the related class InterpolatedUniformGridData
+   * is discussed in step-53.
+   *
    * @author Wolfgang Bangerth, 2013
    */
   template <int dim>
@@ -1229,7 +1232,7 @@ namespace Functions
      *   converting other data types into a table where you specify this
      *   argument.
      */
-    InterpolatedTensorProductGridData (const std_cxx1x::array<std::vector<double>,dim> &coordinate_values,
+    InterpolatedTensorProductGridData (const std_cxx11::array<std::vector<double>,dim> &coordinate_values,
                                        const Table<dim,double>                         &data_values);
 
     /**
@@ -1251,7 +1254,7 @@ namespace Functions
     /**
      * The set of coordinate values in each of the coordinate directions.
      */
-    const std_cxx1x::array<std::vector<double>,dim> coordinate_values;
+    const std_cxx11::array<std::vector<double>,dim> coordinate_values;
 
     /**
      * The data that is to be interpolated.
@@ -1291,6 +1294,8 @@ namespace Functions
    * box since it frequently happens that a point lies just outside the box
    * by an amount on the order of numerical roundoff.)
    *
+   * @note The use of this class is discussed in step-53.
+   *
    * @author Wolfgang Bangerth, 2013
    */
   template <int dim>
@@ -1312,8 +1317,8 @@ namespace Functions
      *   converting other data types into a table where you specify this
      *   argument.
      */
-    InterpolatedUniformGridData (const std_cxx1x::array<std::pair<double,double>,dim> &interval_endpoints,
-                                 const std_cxx1x::array<unsigned int,dim>             &n_subintervals,
+    InterpolatedUniformGridData (const std_cxx11::array<std::pair<double,double>,dim> &interval_endpoints,
+                                 const std_cxx11::array<unsigned int,dim>             &n_subintervals,
                                  const Table<dim,double>                              &data_values);
 
     /**
@@ -1335,12 +1340,12 @@ namespace Functions
     /**
      * The set of interval endpoints in each of the coordinate directions.
      */
-    const std_cxx1x::array<std::pair<double,double>,dim> interval_endpoints;
+    const std_cxx11::array<std::pair<double,double>,dim> interval_endpoints;
 
     /**
      * The number of subintervals in each of the coordinate directions.
      */
-    const std_cxx1x::array<unsigned int,dim>             n_subintervals;
+    const std_cxx11::array<unsigned int,dim>             n_subintervals;
 
     /**
      * The data that is to be interpolated.

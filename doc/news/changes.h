@@ -97,28 +97,29 @@ inconvenience this causes.
 
 
 <ol>
+  <li> New: The new tutorial program step-53 explains how to deal with
+  complicated geometries.
+  <br>
+  (Wolfgang Bangerth, Luca Heltai, 2014/09/02)
+
+  <li> Changed: Namespace std_cxx1x has been renamed to namespace
+  std_cxx11 to match the fact that the corresponding C++ standard
+  was approved back in 2011. The old namespace name was retained for
+  backward compatibility but is now deprecated.
+  <br>
+  (Wolfgang Bangerth, 2014/09/01)
+  </li>
+
+  <li> New: Most of the operations done on Vector (like add, sadd, etc.) 
+  are now vectorized (SIMD) using OpenMP 4.0
+  <br>
+  (Bruno Turcksin, 2014/08/25)
+  </li>
+
   <li> Updated: The version of BOOST that comes bundled with deal.II has 
   been updated to 1.56.0.
   <br>
   (Wolfgang Bangerth, 2014/08/19)
-  </li>
-
-  <li> New: There is now a GridGenerator::flatten_triangulation()
-  taking a Triangulation<dim, spacedim_1> as input and returning
-  a Triangulation<dim, spacedim_2> as output. The output
-  triangulation will contain a single level with all active
-  cells of the input triangulation, and will be topologically
-  equivalent to the input triangulation. If the two spacedimensions
-  are equal, then this function will copy the triangulation
-  removing all levels, e.g., flattening it. If the two spacedimensions
-  are different, then this function will copy the vertices only
-  up to the smallest spacedimension parameter. <br>
-  Using this function, you can create a Triangulation<2,3> from
-  a Triangulation<2,2> or project to the plane z=0 your
-  Triangulation<2,3>. No checks are performed on the validity of
-  the resulting Triangulation.
-  <br>
-  (Luca Heltai, 2014/08/19)
   </li>
 
   <li> Fixed: Newer versions of GCC (e.g. 4.9.x) are no longer compatible
@@ -135,26 +136,6 @@ inconvenience this causes.
   @ref CPP11 "C++11 standard".
   <br>
   (Wolfgang Bangerth, 2014/08/14)
-  </li>
-
-  <li> New: Added FunctionManifold descritpion.
-  <br>
-  This class allows arbitrary manifold descriptions, in which you have
-  an explicit Function<chartdim> for the ManifoldChart::push_forward()
-  method, and an explicit Function<spacedim> for ManifoldChart::pull_back()
-  method (or an expression for both). In these cases, you can construct a
-  Manifold description on the fly.
-  <br>
-  (Luca Heltai, 2014/08/07)
-  </li>
-
-  <li> New: Added CylindricalManifold descritpion.
-  <br>
-  This class allows refinement of cylindrical manifolds. It is a good
-  companion for GridGenerator::cylinder() and the perfect companion
-  for GridGenerator::cylinder_shell().
-  <br>
-  (Luca Heltai, 2014/08/06)
   </li>
 
   <li> New: Added support for curved interior cells for all Triangulation
@@ -291,6 +272,24 @@ inconvenience this causes.
   (Alexander Grayver, 2014/08/22)
   </li>
 
+  <li> New: There is now a GridGenerator::flatten_triangulation()
+  taking a Triangulation<dim, spacedim_1> as input and returning
+  a Triangulation<dim, spacedim_2> as output. The output
+  triangulation will contain a single level with all active
+  cells of the input triangulation, and will be topologically
+  equivalent to the input triangulation. If the two spacedimensions
+  are equal, then this function will copy the triangulation
+  removing all levels, e.g., flattening it. If the two spacedimensions
+  are different, then this function will copy the vertices only
+  up to the smallest spacedimension parameter. <br>
+  Using this function, you can create a Triangulation<2,3> from
+  a Triangulation<2,2> or project to the plane z=0 your
+  Triangulation<2,3>. No checks are performed on the validity of
+  the resulting Triangulation.
+  <br>
+  (Luca Heltai, 2014/08/19)
+  </li>
+
   <li> Changed: The functions GridTools::extract_boundary_mesh() and
   GridTools::create_union_triangulation() have been moved to
   GridGenerator::extract_boundary_mesh() and
@@ -325,6 +324,26 @@ inconvenience this causes.
   See the new @ref CPP11 "C++11" page for more information.
   <br>
   (Wolfgang Bangerth, 2014/08/07)
+  </li>
+
+  <li> New: Added FunctionManifold descritpion.
+  <br>
+  This class allows arbitrary manifold descriptions, in which you have
+  an explicit Function<chartdim> for the ManifoldChart::push_forward()
+  method, and an explicit Function<spacedim> for ManifoldChart::pull_back()
+  method (or an expression for both). In these cases, you can construct a
+  Manifold description on the fly.
+  <br>
+  (Luca Heltai, 2014/08/07)
+  </li>
+
+  <li> New: Added CylindricalManifold descritpion.
+  <br>
+  This class allows refinement of cylindrical manifolds. It is a good
+  companion for GridGenerator::cylinder() and the perfect companion
+  for GridGenerator::cylinder_shell().
+  <br>
+  (Luca Heltai, 2014/08/06)
   </li>
 
   <li> New: TrilinosWrappers::PreconditionAMG can now be initialized from an
