@@ -1,5 +1,4 @@
 // ---------------------------------------------------------------------
-// $Id: tria_boundary_lib.inst.in 30130 2013-07-23 13:01:18Z heltai $
 //
 // Copyright (C) 1999 - 2013 by the deal.II authors
 //
@@ -17,7 +16,7 @@
 
 for (deal_II_dimension : DIMENSIONS; deal_II_space_dimension :  SPACE_DIMENSIONS)
   {
-#if deal_II_space_dimension > 1 && deal_II_dimension <= deal_II_space_dimension
+#if deal_II_dimension <= deal_II_space_dimension
     template class SphericalManifold<deal_II_dimension, deal_II_space_dimension>;
 #endif
 #if deal_II_dimension <= deal_II_space_dimension

@@ -1,5 +1,4 @@
 // ---------------------------------------------------------------------
-// $Id: manifold_lib.cc 30130 2013-07-23 13:01:18Z heltai $
 //
 // Copyright (C) 2013 by the deal.II authors
 //
@@ -28,9 +27,7 @@ template <int dim, int spacedim>
 SphericalManifold<dim,spacedim>::SphericalManifold(const Point<spacedim> center):
   ChartManifold<dim,spacedim,spacedim>(SphericalManifold<dim,spacedim>::get_periodicity()),
   center(center)
-{
-  Assert(spacedim != 1, ExcImpossibleInDim(1));
-}
+{}
 
 
 

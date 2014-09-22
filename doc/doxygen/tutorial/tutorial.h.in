@@ -1,5 +1,4 @@
 // ---------------------------------------------------------------------
-// $Id$
 //
 // Copyright (C) 2005 - 2014 by the deal.II authors
 //
@@ -391,6 +390,12 @@
  *       <td>step-51</td>
  *       <td> Solving the convection-diffusion equation with a hybridizable
  *       discontinuous Galerkin method using face elements.
+ *       </td></tr>
+ *
+ *   <tr valign="top">
+ *       <td>step-52/td>
+ *       <td> Solving the time dependent neutron diffusion equation using 
+ *       Runge-Kutta methods.
  *       </td></tr>
  *
  *   <tr valign="top">
@@ -970,6 +975,12 @@
  *     <td> The Euler equations of compressible gas dynamics
  *     </td>
  *     <td>step-33</td>
+ *   </tr>
+ *
+ *   <tr valign="top">
+ *     <td> Time dependent neutron diffusion equation
+ *     </td>
+ *     <td>step-52</td>
  *   </tr>
  * </table>
  */

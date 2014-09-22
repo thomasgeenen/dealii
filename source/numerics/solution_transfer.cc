@@ -1,5 +1,4 @@
 // ---------------------------------------------------------------------
-// $Id$
 //
 // Copyright (C) 1999 - 2014 by the deal.II authors
 //
@@ -95,7 +94,8 @@ void SolutionTransfer<dim, VECTOR, DH>::prepare_for_pure_refinement()
       // out of the data vectors and prolonging
       // them to the children
       cell->get_dof_indices(indices_on_cell[i]);
-      cell_map[std::make_pair(cell->level(),cell->index())].indices_ptr=&indices_on_cell[i];
+      cell_map[std::make_pair(cell->level(),cell->index())]
+        = Pointerstruct(&indices_on_cell[i], cell->active_fe_index());
     }
   prepared_for=pure_refinement;
 }
