@@ -110,24 +110,19 @@ inconvenience this causes.
 
 
 <ol>
+  <li> New: There is now a section in the introduction of step-36 that
+  discusses the interaction of Dirichlet boundary values and the solution
+  of eigenvalue problems.
+  <br>
+  (Denis Davydov, Wolfgang Bangerth, 2014/09/28)
+  </li>
 
   <li> New: Made MappingQ<dim,spacedim> aware of
   Manifold<dim,spacedim>. Now we can use high order mappings that
   actually follow the geometry also on the interior of codimension
   zero meshes.
-  <br> (Luca Heltai, 2014/09/13) 
-  </li>
-
-  <li> New: Added two optional parameters to TriaAccessor::center()
-  and a new method TriaAccessor::intermediate_point(). 
-  They allow to query for a 
-  geometrically coherent center, or ask for arbitrary points on the 
-  underlying Manifold, given the dim coordinates in the reference 
-  element.
-  Triangulation was refactored internally to use the new 
-  TriaAccessor::center() interface when querying for new points.
   <br>
-  (Luca Heltai, 2014/09/13)
+  (Luca Heltai, 2014/09/13) 
   </li>
 
   <li> New: The new tutorial program step-52 explains how to use the 
@@ -184,9 +179,11 @@ inconvenience this causes.
   A new Manifold<dim,spacedim> class was introduced which only contains the
   interface needed by Triangulation to refine objects, leaving all boundary
   related functions in the class Boundary<dim,spacedim>, which was made
-  derived from Manifold<dim,spacedim>. <br>
+  derived from Manifold<dim,spacedim>.
+  <br>
   This new construction allows for curved interior cells, and custom refinement
-  strategies. At the moment the following Manifolds are supported:
+  strategies (see, for example, the new tutorial program step-53).
+  At the moment the following Manifolds are supported:
   <ul>
   <li> FlatManifold<dim,spacedim>: This class replaces the old
   StraightBoundary<dim,spacedim>, and it adds support for periodic
@@ -304,6 +301,22 @@ inconvenience this causes.
 <h3>Specific improvements</h3>
 
 <ol>
+  <li> Fixed: Trying to have FE_Q(p) and FE_DGQ(r) elements next to each
+  other in an hp::DoFHandler object led to assertions saying that these two
+  elements don't know how to compute interface constraints where such
+  elements touch. This has now been fixed: FE_DGQ is a discontinuous element,
+  so there cannot be any interface constraints at all.
+  <br>
+  (Wolfgang Bangerth, 2014/09/26)
+  </li>
+
+  <li> Fixed: The function TrilinosWrappers::VectorBase::sadd(double factor,
+  VectorBase &v) erroneously added factor*v instead of scaling the calling
+  vector by factor. This is now fixed.
+  <br>
+  (Martin Kronbichler, 2014/09/26)
+  </li>
+
   <li> Fixed: The function TrilinosWrappers::SparseMatrix::add(double factor,
   SparseMatrix &rhs) produced wrong results and ran into an exception if the
   rhs matrix included off-processor column entries. This is now fixed.
@@ -315,6 +328,18 @@ inconvenience this causes.
   a task object can be joined or not.
   <br>
   (Wolfgang Bangerth, 2014/09/17)
+  </li>
+
+  <li> New: Added two optional parameters to TriaAccessor::center()
+  and a new method TriaAccessor::intermediate_point(). 
+  They allow to query for a 
+  geometrically coherent center, or ask for arbitrary points on the 
+  underlying Manifold, given the dim coordinates in the reference 
+  element.
+  Triangulation was refactored internally to use the new 
+  TriaAccessor::center() interface when querying for new points.
+  <br>
+  (Luca Heltai, 2014/09/13)
   </li>
 
   <li> Improved: Optimize construction of high-order FE_Nedelec by moving out some 
