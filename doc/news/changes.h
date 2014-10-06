@@ -325,6 +325,12 @@ inconvenience this causes.
 <h3>Specific improvements</h3>
 
 <ol>
+  <li> New: Add a new preconditioner TrilinosWrappers::PreconditionAMGMueLu based on the 
+  MueLu package from Trilinos. It is only enable with Trilinos 11.12 or newer.
+  <br>
+  (Bruno Turcksin, 2014/10/31)
+  </li>
+
   <li> New: There is now a macro <code>DEAL_II_VERSION_GTE</code>
   that can be used to test whether the deal.II version is greater
   than or equal a particular version number. This is useful if you
