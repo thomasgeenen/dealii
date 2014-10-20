@@ -420,6 +420,8 @@ namespace TrilinosWrappers
     /**
      * Return if the vector contains ghost elements. This answer is true if
      * there are ghost elements on at least one process.
+     *
+     * @see @ref GlossGhostedVector "vectors with ghost elements"
      */
     bool has_ghost_elements() const;
 
@@ -1225,10 +1227,6 @@ namespace TrilinosWrappers
   VectorBase &
   VectorBase::operator = (const TrilinosScalar s)
   {
-    // if we have ghost values, do not allow
-    // writing to this vector at all.
-    Assert (!has_ghost_elements(), ExcGhostsPresent());
-
     Assert (numbers::is_finite(s), ExcNumberNotFinite());
 
     const int ierr = vector->PutScalar(s);

@@ -117,6 +117,12 @@ inconvenience this causes.
   (Denis Davydov, Wolfgang Bangerth, 2014/09/28)
   </li>
 
+  <li> New: The glossary now contains an extensive entry on ghosted and
+  non-ghosted vectors (see @ref GlossGhostedVector
+  <br>
+  (Wolfgang Bangerth, 2014/09/27)
+  </li>
+
   <li> New: Made MappingQ<dim,spacedim> aware of
   Manifold<dim,spacedim>. Now we can use high order mappings that
   actually follow the geometry also on the interior of codimension
@@ -301,6 +307,26 @@ inconvenience this causes.
 <h3>Specific improvements</h3>
 
 <ol>
+  <li> Changed: PETSc and Trilinos vectors with ghost entries can now be reset to zero
+  using = 0.0;
+  <br>
+  (Timo Heister, 2014/10/14)
+  </li>
+
+  <li> New: The new function FiniteElement::get_associated_geometry_primitive() allows to
+  query whether a given degree of freedom is associated with a vertex, line,
+  quad, or hex.
+  <br>
+  (Wolfgang Bangerth, 2014/09/26)
+  </li>
+
+  <li> Fixed: The vector and array versions of Utilities::MPI::sum() and
+  Utilities::MPI::max() produced segmentation faults with some MPI implementations
+  if the input and output arguments were the same. This is now fixed.
+  <br>
+  (Wolfgang Bangerth, 2014/09/29)
+  </li>
+
   <li> Fixed: Trying to have FE_Q(p) and FE_DGQ(r) elements next to each
   other in an hp::DoFHandler object led to assertions saying that these two
   elements don't know how to compute interface constraints where such
