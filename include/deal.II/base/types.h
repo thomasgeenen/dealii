@@ -174,6 +174,12 @@ namespace TrilinosWrappers
      */
     typedef int int_type;
 #endif
+
+    /**
+     * Declare type of the local ordering used by the Tpetra package of
+     * Trilinos.
+     */
+    typedef unsigned int local_dof_index;
   }
 }
 
