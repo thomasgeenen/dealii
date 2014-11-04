@@ -65,6 +65,7 @@ namespace TrilinosWrappers
    * TrilinosWrapper members.
    *
    * @ingroup TrilinosWrappers
+   * @ingroup Tpetra
    */
   namespace internal
   {
@@ -81,6 +82,7 @@ namespace TrilinosWrappers
      * assignment operator for writing to this one element.
      *
      * @ingroup TrilinosWrappers
+     * @ingroup Tpetra
      */
     class VectorReference
     {
@@ -115,17 +117,18 @@ namespace TrilinosWrappers
       operator = (const VectorReference &r);
 
       /**
-       * TODO this can be a bad idea since now we need to access everything to
-       * a view... In particular, this is a terrible idea with GPU.
        * Set the referenced element of the vector to <tt>s</tt>.
+       *
+       * @dealiiRequiresTrilinosView
        */
       const VectorReference &
       operator = (const TrilinosScalar &s) const;
 
       /**
-       * TODO this can be a bad idea since now we need to access everything to
        * a view... In particular, this is a terrible idea with GPU.
        * Add <tt>s</tt> to the referenced element of the vector->
+       *
+       * @dealiiRequiresTrilinosView
        */
       const VectorReference &
       operator += (const TrilinosScalar &s) const;
@@ -186,37 +189,26 @@ namespace TrilinosWrappers
 
 
   /**
-   * TODO
-   * Base class for the two types of Trilinos vectors, the distributed
-   * memory vector MPI::Vector and a localized vector Vector. The latter
-   * is designed for use in either serial implementations or as a
-   * localized copy on each processor.  The implementation of this class
-   * is based on the Trilinos vector class Epetra_FEVector, the (parallel)
-   * partitioning of which is governed by an Epetra_Map. This means that
-   * the vector type is generic and can be done in this base class, while
-   * the definition of the partition map (and hence, the constructor and
-   * reinit function) will have to be done in the derived classes. The
-   * Epetra_FEVector is precisely the kind of vector we deal with all the
-   * time - we probably get it from some assembly process, where also
-   * entries not locally owned might need to written and hence need to be
-   * forwarded to the owner. The only requirement for this class to work
-   * is that Trilinos is installed with the same compiler as is used for
-   * compilation of deal.II.
+   * Base class for the two types of Trilinos Tpetra vectors, the distributed
+   * memory vector MPI::Vector and a localized vector Vector. The latter is
+   * designed for use in either serial implementations or as a localized copy on
+   * each processor. The implementation of this class is based on the Trilinos
+   * vector class Tpetra::MultiVector, the (parallel) partitioning of which is
+   * governed by a Tpetra::Map. This means that the vector types is generic and
+   * can be done in this base classm while the definition of the partition map
+   * (and hence, the constructor and reinit function) will have to be done in
+   * the derived classes. The only requirement for this class to work is that
+   * Trilinos is installed with the same compiler as is used for the compilation
+   * of deal.II
    *
-   * The interface of this class is modeled after the existing Vector
-   * class in deal.II. It has almost the same member functions, and is
-   * often exchangable. However, since Trilinos only supports a single
-   * scalar type (double), it is not templated, and only works with that
-   * type.
-   *
-   * Note that Trilinos only guarantees that operations do what you expect
-   * if the function @p GlobalAssemble has been called after vector
-   * assembly in order to distribute the data. Therefore, you need to call
-   * Vector::compress() before you actually use the vectors.
+   * The interface of this class is modeled after the existing Vector class in
+   * deal.II. It has almost the same member functions, and is often
+   * exchangeable.
    *
    * @ingroup TrilinosWrappers
+   * @ingroup Tpetra
    * @ingroup Vectors
-   * @author Martin Kronbichler, 2008
+   * @author Bruno Turcksin, 2014
    */
   class VectorBase : public Subscriptor
   {
@@ -309,9 +301,8 @@ namespace TrilinosWrappers
     bool is_compressed () const;
 
     /**
-     * TODO
      * Set all components of the vector to the given number @p s. Simply pass
-     * this down to the Trilinos Epetra object, but we still need to declare
+     * this down to the Trilinos Tpetra object, but we still need to declare
      * this function to make the example given in the discussion about making
      * the constructor explicit work.
      *
@@ -506,7 +497,6 @@ namespace TrilinosWrappers
     operator () (const size_type index);
 
     /**
-     * TODO bad idea to use because of view...
      * Provide read-only access to an element.
      *
      * When using a vector distributed with MPI, this operation only makes
@@ -514,24 +504,28 @@ namespace TrilinosWrappers
      * processor. Otherwise, an exception is thrown. This is different from
      * the <code>el()</code> function below that always succeeds (but returns
      * zero on non-local elements).
+     *
+     * @dealiiRequiresTrilinosView
      */
     TrilinosScalar
     operator () (const size_type index) const;
 
     /**
-     * TODO bad idea to use because of view...
      * Provide access to a given element, both read and write.
      *
      * Exactly the same as operator().
+     *
+     * @dealiiRequiresTrilinosView
      */
     reference
     operator [] (const size_type index);
 
     /**
-     * TODO bad idea to use because of view...
      * Provide read-only access to an element.
      *
      * Exactly the same as operator().
+     *
+     * @dealiiRequiresTrilinosView
      */
     TrilinosScalar
     operator [] (const size_type index) const;
@@ -555,13 +549,14 @@ namespace TrilinosWrappers
                                OutputIterator           values_begin) const;
 
     /**
-     * TODO bad idea to use because of view...
      * Return the value of the vector entry <i>i</i>. Note that this function
      * does only work properly when we request a data stored on the local
      * processor. In case the elements sits on another process, this function
      * returns 0 which might or might not be appropriate in a given
      * situation. If you rely on consistent results, use the access functions
      * () or [] that throw an assertion in case a non-local element is used.
+     *
+     * @dealiiRequiresTrilinosView
      */
     TrilinosScalar el (const size_type index) const;
 
@@ -882,7 +877,6 @@ namespace TrilinosWrappers
 
   private:
     /**
-     * TODO
      * Trilinos doesn't allow to mix additions to matrix entries and
      * overwriting them (to make synchronisation of parallel computations
      * simpler). The way we do it is to, for each access operation, store
@@ -937,8 +931,8 @@ namespace TrilinosWrappers
    * the C standard library which uses a temporary object. The function
    * simply exchanges the data of the two vectors.
    *
-   * @relates TrilinosWrappers::VectorBase
-   * @author Martin Kronbichler, Wolfgang Bangerth, 2008
+   * @relates TrilinosWrappers::Tpetra::VectorBase
+   * @author Bruno Turcksin, 2014
    */
   inline
   void swap (VectorBase &u, VectorBase &v)

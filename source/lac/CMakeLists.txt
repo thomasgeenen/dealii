@@ -69,6 +69,7 @@ SET(_src
   trilinos_solver.cc
   trilinos_sparse_matrix.cc
   trilinos_sparsity_pattern.cc
+  trilinos_tpetra_vector_base.cc
   trilinos_vector_base.cc
   trilinos_vector.cc
   vector.cc

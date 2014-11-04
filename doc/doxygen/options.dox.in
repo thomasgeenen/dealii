@@ -83,6 +83,7 @@ ALIASES += dealiiRequiresUpdateFlags{1}="@note For this function to work properl
 
 ALIASES += dealiiOperationIsMultithreaded="@note If deal.II is configured with threads, this operation will run multi-threaded by splitting the work into smaller chunks (assuming there is enough work to make this worthwhile)."
 
+ALIASES += dealiiRequiresTrilinosView="@note This function requires to create a view of the Tpetra::MultiVector. This function can be slow if run on an accelerator."
 
 #---------------------------------------------------------------------------
 # configuration options related to source browsing
