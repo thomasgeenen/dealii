@@ -30,7 +30,8 @@ namespace TrilinosWrappers
 
     namespace internal
     {
-      VectorReference::operator TrilinosScalar () const
+      template <typename number>
+      VectorReference<number>::operator number () const
       {
         Assert (index < vector.size(),
                 ExcIndexRange (index, 0, vector.size()));
@@ -44,7 +45,7 @@ namespace TrilinosWrappers
 
 
         // Create the view
-        Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector.vector->get1dView();
+        Teuchos::ArrayRCP<number> vector_view = vector.vector->get1dView();
 
         return vector_view[local_index];
       }
@@ -52,16 +53,17 @@ namespace TrilinosWrappers
 
 
 
-    VectorBase::VectorBase ()
+    template <typename number,typename node>
+    VectorBase<number,node>::VectorBase ()
       :
       ghost_elements_readable  (false),
 #ifdef DEAL_II_WITH_MPI
-      vector(new Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,node>(
+      vector(new Tpetra::MultiVector<number,local_dof_index,global_dof_index,node>(
                Teuchos::RCP<Tpetra::Map<local_dof_index,global_dof_index,node> >(new
                    Tpetra::Map<local_dof_index,global_dof_index,node> (0,0,
                        Teuchos::RCP<Teuchos::MpiComm<int> >(MPI_COMM_SELF)))))
 #else
-      vector(new Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,node>(
+      vector(new Tpetra::MultiVector<number,local_dof_index,global_dof_index,node>(
                Teuchos::RCP<Tpetra::Map<local_dof_index,global_dof_index,node> >(new
                    Tpetra::Map<local_dof_index,global_dof_index,node> (0,0,
                        Teuchos::RCP<Teuchos::SerialComm<int> >()))))
@@ -70,13 +72,14 @@ namespace TrilinosWrappers
 
 
 
-    VectorBase::VectorBase (const VectorBase &v)
+    template <typename number,typename node>
+    VectorBase<number,node>::VectorBase (const VectorBase &v)
       :
       Subscriptor(),
       ghost_elements_readable (false),
-      vector(new Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,
+      vector(new Tpetra::MultiVector<number,local_dof_index,global_dof_index,
              node>(*v.vector)),
-      nonlocal_vector(new Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,
+      nonlocal_vector(new Tpetra::MultiVector<number,local_dof_index,global_dof_index,
                       node>(v.nonlocal_vector.getMap(),1))
     {}
 
@@ -87,31 +90,33 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     void
-    VectorBase::clear ()
+    VectorBase<number,node>::clear ()
     {
       // When we clear the vector, reset the pointer and generate an empty
       // vector.
 #ifdef DEAL_II_WITH_MPI
-      Teuchos::<Tpetra::Map<local_dof_index,global_dof_index,node> > map(0,0,
+      Teuchos::RCP<Tpetra::Map<local_dof_index,global_dof_index,node> > map(0,0,
           Teuchos::RCP<Teuchos::MpiComm<int> > (MPI_COMM_SELF));
 #else
-      Teuchos::<Tpetra::Map<local_dof_index,global_dof_index,node> > map(0,0,
+      Teuchos::RCP<Tpetra::Map<local_dof_index,global_dof_index,node> > map(0,0,
           Teuchos::RCP<Teuchos::SerialComm<int> > ());
 #endif
 
       ghost_elements_readable = false;
-      vector.reset (new Tpetra::MultiVector<TrilinosScalar,local_dof_index,
+      vector.reset (new Tpetra::MultiVector<number,local_dof_index,
                     global_dof_index,node>(map,1));
 
-      nonlocal_vector.reset (new Tpetra::MultiVector<TrilinosScalar,local_dof_index,
+      nonlocal_vector.reset (new Tpetra::MultiVector<number,local_dof_index,
                              global_dof_index,node>(map,1));
     }
 
 
 
-    VectorBase &
-    VectorBase::operator = (const VectorBase &v)
+    template <typename number,typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator = (const VectorBase &v)
     {
       Assert (vector.get() != 0,
               ExcMessage("Vector is not constructed properly."));
@@ -146,14 +151,14 @@ namespace TrilinosWrappers
 
 
 
-    template <typename number>
-    VectorBase &
-    VectorBase::operator = (const ::dealii::Vector<number> &v)
+    template <typename number,typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator = (const ::dealii::Vector<number> &v)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch(size(), v.size()));
       // Create the view
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector->get1dViewNonConst();
+      Teuchos::ArrayRCP<number> vector_view = vector->get1dViewNonConst();
 
       // this is probably not very efficient
       // but works. in particular, we could do
@@ -175,8 +180,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     void
-    VectorBase::compress (::dealii::VectorOperation::values action)
+    VectorBase<number,node>::compress (::dealii::VectorOperation::values action)
     {
       Tpetra::CombineMode mode;
       if (given_last_action==::dealii::VectorOperation::add)
@@ -192,12 +198,13 @@ namespace TrilinosWrappers
 
 
 
-    TrilinosScalar
-    VectorBase::operator () (const size_type index) const
+    template <typename number,typename node>
+    number
+    VectorBase<number,node>::operator () (const size_type index) const
     {
       // Extract local indices in the vector.
       local_dof_index local_i = vector->getMap().getLocalElement(index);
-      TrilinosScalar value = 0.;
+      number value = 0.;
 
       Assert (local_i != Teuchos::OrdinalTraits<local_dof_index>::invalid() ||
               ghost_elements_readable == true,
@@ -206,7 +213,7 @@ namespace TrilinosWrappers
       if  (local_i != Teuchos::OrdinalTraits<local_dof_index>::invalid())
         {
           // Create the view
-          Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector->get1dView();
+          Teuchos::ArrayRCP<number> vector_view = vector->get1dView();
 
           value = vector_view[local_i];
         }
@@ -220,7 +227,7 @@ namespace TrilinosWrappers
                              << "on the current processor."));
 
           // Create the view
-          Teuchos::ArrayRCP<TrilinosScalar> nonlocal_vector_view = nonlocal_vector->get1dView();
+          Teuchos::ArrayRCP<number> nonlocal_vector_view = nonlocal_vector->get1dView();
 
           value = nonlocal_vector_view[local_i];
         }
@@ -230,8 +237,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     void
-    VectorBase::add (const VectorBase &v,
+    VectorBase<number,node>::add (const VectorBase<number,node> &v,
                      const bool        allow_different_maps)
     {
       if (allow_different_maps == false)
@@ -250,8 +258,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     bool
-    VectorBase::operator == (const VectorBase &v) const
+    VectorBase<number,node>::operator == (const VectorBase<number,node> &v) const
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch(size(), v.size()));
@@ -259,8 +268,8 @@ namespace TrilinosWrappers
         return false;
 
       // Create the views
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector->get1dView();
-      Teuchos::ArrayRCP<TrilinosScalar> v_view = v->get1dView();
+      Teuchos::ArrayRCP<number> vector_view = vector->get1dView();
+      Teuchos::ArrayRCP<number> v_view = v->get1dView();
       size_type i;
       for (i=0; i<local_size(); i++)
         if (v_view[i]!=vector_view[i])
@@ -271,8 +280,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     bool
-    VectorBase::operator != (const VectorBase &v) const
+    VectorBase<number,node>::operator != (const VectorBase<number,node> &v) const
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch(size(), v.size()));
@@ -282,15 +292,16 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     bool
-    VectorBase::all_zero () const
+    VectorBase<number,node>::all_zero () const
     {
       // Create the view
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector->get1dView();
+      Teuchos::ArrayRCP<number> vector_view = vector->get1dView();
       // get a representation of the vector and
       // loop over all the elements
-      TrilinosScalar *start_ptr = vector_view[0];
-      const TrilinosScalar *ptr  = start_ptr,
+      number *start_ptr = vector_view[0];
+      const number *ptr  = start_ptr,
                             *eptr = start_ptr + local_size();
       unsigned int flag = 0;
       while (ptr != eptr)
@@ -317,8 +328,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     bool
-    VectorBase::is_non_negative () const
+    VectorBase<number,node>::is_non_negative () const
     {
 #ifdef DEAL_II_WITH_MPI
       // if this vector is a parallel one, then
@@ -330,14 +342,14 @@ namespace TrilinosWrappers
 #endif
       // get a representation of the vector and
       // loop over all the elements
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector.vector->get1dView();
-      TrilinosScalar *start_ptr = &vector_view[0];
+      Teuchos::ArrayRCP<number> vector_view = vector.vector->get1dView();
+      number *start_ptr = &vector_view[0];
 
       // TODO: This
       // won't work in parallel like
       // this. Find out a better way to
       // this in that case.
-      const TrilinosScalar *ptr  = start_ptr,
+      const number *ptr  = start_ptr,
                             *eptr = start_ptr + size();
       bool flag = true;
       while (ptr != eptr)
@@ -359,12 +371,13 @@ namespace TrilinosWrappers
     // data printed out! Find a
     // way to neatly output
     // distributed data...
+    template <typename number,typename node>
     void
-    VectorBase::print (const char *format) const
+    VectorBase<number,node>::print (const char *format) const
     {
       Assert (vector->getGlobalLength()!=0, ExcEmptyObject());
 
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector.vector->get1dView();
+      Teuchos::ArrayRCP<number> vector_view = vector.vector->get1dView();
 
       for (size_type j=0; j<size(); ++j)
         {
@@ -380,8 +393,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     void
-    VectorBase::print (std::ostream      &out,
+    VectorBase<number,node>::print (std::ostream      &out,
                        const unsigned int precision,
                        const bool         scientific,
                        const bool         across) const
@@ -394,8 +408,8 @@ namespace TrilinosWrappers
       // now only local data printed
       // out! Find a way to neatly
       // output distributed data...
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector.vector->get1dView();
-      TrilinosScalar *val = &vector_view[0];
+      Teuchos::ArrayRCP<number> vector_view = vector.vector->get1dView();
+      number *val = &vector_view[0];
 
       AssertThrow (ierr == 0, ExcTrilinosError(ierr));
       out.precision (precision);
@@ -419,8 +433,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     void
-    VectorBase::swap (VectorBase &v)
+    VectorBase<number,node>::swap (VectorBase<number,node> &v)
     {
       std::swap(last_action, v.last_action);
       std::swap(compressed, v.compressed);
@@ -429,8 +444,9 @@ namespace TrilinosWrappers
 
 
 
+    template <typename number,typename node>
     std::size_t
-    VectorBase::memory_consumption () const
+    VectorBase<number,node>::memory_consumption () const
     {
       //TODO[TH]: No accurate memory
       //consumption for Trilinos vectors

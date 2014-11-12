@@ -31,7 +31,6 @@
 #  include <utility>
 #  include <memory>
 
-#  define TrilinosScalar double
 #  ifdef DEAL_II_WITH_MPI // only if MPI is installed
 #    include "mpi.h"
 #  endif
@@ -45,6 +44,7 @@ template <typename number> class Vector;
 
 /**
  * @addtogroup TrilinosWrappers
+ * @addtogroup Tpetra
  *@{
  */
 namespace TrilinosWrappers
@@ -54,7 +54,7 @@ namespace TrilinosWrappers
   {
 
     // forward declaration
-    class VectorBase;
+    template <typename number, typename node> class VectorBase;
 
     /**
      * @cond internal
@@ -84,6 +84,7 @@ namespace TrilinosWrappers
        * @ingroup TrilinosWrappers
        * @ingroup Tpetra
        */
+      template <typename number>
       class VectorReference
       {
       private:
@@ -91,7 +92,7 @@ namespace TrilinosWrappers
          * Constructor. It is made private so as to only allow the actual vector
          * class to create it.
          */
-        VectorReference (VectorBase     &vector,
+        VectorReference (VectorBase<number,node>     &vector,
                          const size_type  index);
 
       public:
@@ -120,37 +121,37 @@ namespace TrilinosWrappers
          * Set the referenced element of the vector to <tt>s</tt>.
          */
         const VectorReference &
-        operator = (const TrilinosScalar &s) const;
+        operator = (const number &s) const;
 
         /**
          * Add <tt>s</tt> to the referenced element of the vector->
          */
         const VectorReference &
-        operator += (const TrilinosScalar &s) const;
+        operator += (const number &s) const;
 
         /**
          * Subtract <tt>s</tt> from the referenced element of the vector->
          */
         const VectorReference &
-        operator -= (const TrilinosScalar &s) const;
+        operator -= (const number &s) const;
 
         /**
          * Multiply the referenced element of the vector by <tt>s</tt>.
          */
         const VectorReference &
-        operator *= (const TrilinosScalar &s) const;
+        operator *= (const number &s) const;
 
         /**
          * Divide the referenced element of the vector by <tt>s</tt>.
          */
         const VectorReference &
-        operator /= (const TrilinosScalar &s) const;
+        operator /= (const number &s) const;
 
         /**
          * Convert the reference to an actual value, i.e. return the value of
          * the referenced element of the vector.
          */
-        operator TrilinosScalar () const;
+        operator number () const;
 
       private:
         /**
@@ -197,6 +198,7 @@ namespace TrilinosWrappers
      * @ingroup Vectors
      * @author Bruno Turcksin, 2014
      */
+    template <typename number, typename node=KokkosClassic::DefaultNode::DefaultNodeType>
     class VectorBase : public Subscriptor
     {
     public:
@@ -205,16 +207,14 @@ namespace TrilinosWrappers
        * parallel those in the <tt>C</tt> standard libraries
        * <tt>vector<...></tt> class.
        */
-      typedef TrilinosScalar                              value_type;
-      typedef TrilinosScalar                              real_type;
+      typedef number                                      real_type;
       typedef dealii::types::global_dof_index             size_type;
-      typedef value_type                                 *iterator;
+      typedef number                                     *iterator;
       typedef const value_type                           *const_iterator;
       typedef internal::VectorReference                   reference;
       typedef const internal::VectorReference             const_reference;
       typedef dealii::TrilinosWrappers::local_dof_index   local_dof_index;
       typedef dealii::types::global_dof_index             global_dof_index;
-      typedef KokkosClassic::DefaultNode::DefaultNodeType node;
 
       /**
        * @name 1: Basic Object-handling
@@ -283,7 +283,7 @@ namespace TrilinosWrappers
        * disallowed in the future.
        */
       VectorBase &
-      operator = (const TrilinosScalar s);
+      operator = (const number s);
 
       /**
        * Copy function. This function takes a VectorBase vector and copies all
@@ -397,7 +397,7 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      TrilinosScalar operator * (const VectorBase &vec) const;
+      number operator * (const VectorBase &vec) const;
 
       /**
        * Return square of the $l_2$-norm.
@@ -409,7 +409,7 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      TrilinosScalar mean_value () const;
+      number mean_value () const;
 
       /**
        * $l_1$-norm of the vector.  The sum of the absolute values.
@@ -432,7 +432,7 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      real_type lp_norm (const TrilinosScalar p) const;
+      real_type lp_norm (const number p) const;
 
       /**
        * Maximum absolute value of the elements.
@@ -481,7 +481,7 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      TrilinosScalar
+      number
       operator () (const size_type index) const;
 
       /**
@@ -501,7 +501,7 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      TrilinosScalar
+      number
       operator [] (const size_type index) const;
 
       /**
@@ -511,7 +511,7 @@ namespace TrilinosWrappers
        * argument, the corresponding values are returned in the second.
        */
       void extract_subvector_to (const std::vector<size_type> &indices,
-                                 std::vector<TrilinosScalar> &values) const;
+                                 std::vector<number> &values) const;
 
       /**
        * Just as the above, but with pointers.  Useful in minimizing copying of
@@ -568,7 +568,7 @@ namespace TrilinosWrappers
        * locally owned.
        */
       void set (const std::vector<size_type>    &indices,
-                const std::vector<TrilinosScalar>  &values);
+                const std::vector<number>  &values);
 
       /**
        * This is a second collective set operation. As a difference, this
@@ -576,7 +576,7 @@ namespace TrilinosWrappers
        * owned.
        */
       void set (const std::vector<size_type>        &indices,
-                const ::dealii::Vector<TrilinosScalar> &values);
+                const ::dealii::Vector<number> &values);
 
       /**
        * This collective set operation is of lower level and can handle anything
@@ -586,21 +586,21 @@ namespace TrilinosWrappers
        */
       void set (const size_type       n_elements,
                 const size_type      *indices,
-                const TrilinosScalar *values);
+                const number *values);
 
       /**
        * A collective add operation: This function adds a whole set of values
        * stored in @p values to the vector components specified by @p indices.
        */
       void add (const std::vector<size_type>      &indices,
-                const std::vector<TrilinosScalar> &values);
+                const std::vector<number> &values);
 
       /**
        * This is a second collective add operation. As a difference, this
        * function takes a deal.II vector of values.
        */
       void add (const std::vector<size_type>           &indices,
-                const ::dealii::Vector<TrilinosScalar> &values);
+                const ::dealii::Vector<number> &values);
 
       /**
        * Take an address where <tt>n_elements</tt> are stored contiguously and
@@ -609,17 +609,17 @@ namespace TrilinosWrappers
        */
       void add (const size_type       n_elements,
                 const size_type      *indices,
-                const TrilinosScalar *values);
+                const number *values);
 
       /**
        * Multiply the entire vector by a fixed factor.
        */
-      VectorBase &operator *= (const TrilinosScalar factor);
+      VectorBase &operator *= (const number factor);
 
       /**
        * Divide the entire vector by a fixed factor.
        */
-      VectorBase &operator /= (const TrilinosScalar factor);
+      VectorBase &operator /= (const number factor);
 
       /**
        * Add the given vector to the present one.
@@ -637,7 +637,7 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      void add (const TrilinosScalar s);
+      void add (const number s);
 
       /**
        * Simple vector addition, equal to the <tt>operator +=</tt>.
@@ -656,50 +656,50 @@ namespace TrilinosWrappers
       /**
        * Simple addition of a multiple of a vector, i.e. <tt>*this += a*V</tt>.
        */
-      void add (const TrilinosScalar  a,
+      void add (const number  a,
                 const VectorBase     &V);
 
       /**
        * Multiple addition of scaled vectors, i.e. <tt>*this += a*V + b*W</tt>.
        */
-      void add (const TrilinosScalar  a,
+      void add (const number  a,
                 const VectorBase     &V,
-                const TrilinosScalar  b,
+                const number  b,
                 const VectorBase     &W);
 
       /**
        * Scaling and simple vector addition, i.e.  <tt>*this = s*(*this) +
        * V</tt>.
        */
-      void sadd (const TrilinosScalar  s,
+      void sadd (const number  s,
                  const VectorBase     &V);
 
       /**
        * Scaling and simple addition, i.e.  <tt>*this = s*(*this) + a*V</tt>.
        */
-      void sadd (const TrilinosScalar  s,
-                 const TrilinosScalar  a,
+      void sadd (const number  s,
+                 const number  a,
                  const VectorBase     &V);
 
       /**
        * Scaling and multiple addition.
        */
-      void sadd (const TrilinosScalar  s,
-                 const TrilinosScalar  a,
+      void sadd (const number  s,
+                 const number  a,
                  const VectorBase     &V,
-                 const TrilinosScalar  b,
+                 const number  b,
                  const VectorBase     &W);
 
       /**
        * Scaling and multiple addition.  <tt>*this = s*(*this) + a*V + b*W +
        * c*X</tt>.
        */
-      void sadd (const TrilinosScalar  s,
-                 const TrilinosScalar  a,
+      void sadd (const number  s,
+                 const number  a,
                  const VectorBase     &V,
-                 const TrilinosScalar  b,
+                 const number  b,
                  const VectorBase     &W,
-                 const TrilinosScalar  c,
+                 const number  c,
                  const VectorBase     &X);
 
       /**
@@ -712,15 +712,15 @@ namespace TrilinosWrappers
       /**
        * Assignment <tt>*this = a*V</tt>.
        */
-      void equ (const TrilinosScalar  a,
+      void equ (const number  a,
                 const VectorBase     &V);
 
       /**
        * Assignment <tt>*this = a*V + b*W</tt>.
        */
-      void equ (const TrilinosScalar  a,
+      void equ (const number  a,
                 const VectorBase     &V,
-                const TrilinosScalar  b,
+                const number  b,
                 const VectorBase     &W);
 
       /**
@@ -747,14 +747,14 @@ namespace TrilinosWrappers
        * Return a const reference to the underlying Trilinos Tpetra::MultiVector
        * class.
        */
-      const Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,node>
+      const Tpetra::MultiVector<number,local_dof_index,global_dof_index,node>
       &trilinos_vector () const;
 
       /**
        * Return a (modifyable) reference to the underlying Trilinos
        * Tpetra_FEVector class.
        */
-      Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,node>
+      Tpetra::MultiVector<number,local_dof_index,global_dof_index,node>
       &trilinos_vector ();
 
       /**
@@ -871,7 +871,7 @@ namespace TrilinosWrappers
        * object requires an existing Tpetra::Map for
        * storing data when setting it up.
        */
-      std_cxx11::shared_ptr<Tpetra::MultiVector<TrilinosScalar,local_dof_index,
+      std_cxx11::shared_ptr<Tpetra::MultiVector<number,local_dof_index,
                 global_dof_index,node> > vector;
 
       /**
@@ -879,7 +879,7 @@ namespace TrilinosWrappers
        * elements if the vector was constructed with an additional IndexSet
        * describing ghost elements.
        */
-      std_cxx11::shared_ptr<Tpetra::MultiVector<TrilinosScalar,local_dof_index,
+      std_cxx11::shared_ptr<Tpetra::MultiVector<number,local_dof_index,
                 global_dof_index,node> > nonlocal_vector;
 
       /**
@@ -904,7 +904,8 @@ namespace TrilinosWrappers
      * @author Bruno Turcksin, 2014
      */
     inline
-    void swap (VectorBase &u, VectorBase &v)
+    template <typename number, typename node>
+    void swap (VectorBase<number,node> &u, VectorBase<number, node> &v)
     {
       u.swap (v);
     }
@@ -915,8 +916,9 @@ namespace TrilinosWrappers
     namespace internal
     {
       inline
-      VectorReference::VectorReference (VectorBase      &vector,
-                                        const size_type  index)
+      template <typename number>
+      VectorReference<number>::VectorReference (VectorBase<number,node> &vector,
+                                                      const size_type          index)
         :
         vector (vector),
         index (index)
@@ -924,14 +926,15 @@ namespace TrilinosWrappers
 
 
       inline
-      const VectorReference &
-      VectorReference::operator = (const VectorReference &r) const
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator = (const VectorReference<number> &r) const
       {
         // as explained in the class
         // documentation, this is not the copy
         // operator. so simply pass on to the
         // "correct" assignment operator
-        *this = static_cast<TrilinosScalar> (r);
+        *this = static_cast<number> (r);
 
         return *this;
       }
@@ -939,19 +942,21 @@ namespace TrilinosWrappers
 
 
       inline
-      const VectorReference &
-      VectorReference::operator = (const VectorReference &r)
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator = (const VectorReference<number> &r)
       {
         // as above
-        *this = static_cast<TrilinosScalar> (r);
+        *this = static_cast<number> (r);
 
         return *this;
       }
 
 
       inline
-      const VectorReference &
-      VectorReference::operator = (const TrilinosScalar &value) const
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator = (const number &value) const
       {
         vector.set (1, &index, &value);
         return *this;
@@ -960,8 +965,9 @@ namespace TrilinosWrappers
 
 
       inline
-      const VectorReference &
-      VectorReference::operator += (const TrilinosScalar &value) const
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator += (const number &value) const
       {
         vector.add (1, &index, &value);
         return *this;
@@ -970,10 +976,11 @@ namespace TrilinosWrappers
 
 
       inline
-      const VectorReference &
-      VectorReference::operator -= (const TrilinosScalar &value) const
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator -= (const number &value) const
       {
-        TrilinosScalar new_value = -value;
+        number new_value = -value;
         vector.add (1, &index, &new_value);
         return *this;
       }
@@ -981,10 +988,11 @@ namespace TrilinosWrappers
 
 
       inline
-      const VectorReference &
-      VectorReference::operator *= (const TrilinosScalar &value) const
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator *= (const number &value) const
       {
-        TrilinosScalar new_value = static_cast<TrilinosScalar>(*this) * value;
+        number new_value = static_cast<number>(*this) * value;
         vector.set (1, &index, &new_value);
         return *this;
       }
@@ -992,10 +1000,11 @@ namespace TrilinosWrappers
 
 
       inline
-      const VectorReference &
-      VectorReference::operator /= (const TrilinosScalar &value) const
+      template <typename number>
+      const VectorReference<number> &
+      VectorReference<number>::operator /= (const number &value) const
       {
-        TrilinosScalar new_value = static_cast<TrilinosScalar>(*this) / value;
+        number new_value = static_cast<number>(*this) / value;
         vector.set (1, &index, &new_value);
         return *this;
       }
@@ -1004,8 +1013,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     bool
-    VectorBase::in_local_range (const size_type index) const
+    VectorBase<number,node>::in_local_range (const size_type index) const
     {
       std::pair<size_type, size_type> range = local_range();
 
@@ -1015,8 +1025,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     IndexSet
-    VectorBase::locally_owned_elements() const
+    VectorBase<number,node>::locally_owned_elements() const
     {
       IndexSet is (size());
 
@@ -1029,34 +1040,38 @@ namespace TrilinosWrappers
 
 
     inline
-    internal::VectorReference
-    VectorBase::operator () (const size_type index)
+    template <typename number, typename node>
+    internal::VectorReference<number>
+    VectorBase<number,node>::operator () (const size_type index)
     {
-      return internal::VectorReference (*this, index);
+      return internal::VectorReference<number> (*this, index);
     }
 
 
 
     inline
-    internal::VectorReference
-    VectorBase::operator [] (const size_type index)
-    {
-      return operator() (index);
-    }
-
-
-    inline
-    TrilinosScalar
-    VectorBase::operator [] (const size_type index) const
+    template <typename number, typename node>
+    internal::VectorReference<node>
+    VectorBase<number,node>::operator [] (const size_type index)
     {
       return operator() (index);
     }
 
 
+    inline
+    template <typename number, typename node>
+    number
+    VectorBase<number,node>::operator [] (const size_type index) const
+    {
+      return operator() (index);
+    }
+
+
 
     inline
-    void VectorBase::extract_subvector_to (const std::vector<size_type> &indices,
-                                           std::vector<TrilinosScalar>  &values) const
+    template <typename number, typename node>
+    void VectorBase<number,node>::extract_subvector_to (const std::vector<size_type> &indices,
+                                           std::vector<number>  &values) const
     {
       for (size_type i = 0; i < indices.size(); ++i)
         values[i] = operator()(indices[i]);
@@ -1066,7 +1081,8 @@ namespace TrilinosWrappers
 
     template <typename ForwardIterator, typename OutputIterator>
     inline
-    void VectorBase::extract_subvector_to (ForwardIterator          indices_begin,
+    template <typename number, typename node>
+    void VectorBase<number,node>::extract_subvector_to (ForwardIterator          indices_begin,
                                            const ForwardIterator    indices_end,
                                            OutputIterator           values_begin) const
     {
@@ -1081,8 +1097,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::iterator
-    VectorBase::begin()
+    template <typename number, typename node>
+    VectorBase<number,node>::iterator
+    VectorBase<number,node>::begin()
     {
       return (*vector)[0];
     }
@@ -1090,8 +1107,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::iterator
-    VectorBase::end()
+    template <typename number, typename node>
+    VectorBase<number,node>::iterator
+    VectorBase<number,node>::end()
     {
       return (*vector)[0]+local_size();
     }
@@ -1099,8 +1117,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::const_iterator
-    VectorBase::begin() const
+    template <typename number, typename node>
+    VectorBase<number,node>::const_iterator
+    VectorBase<number,node>::begin() const
     {
       return (*vector)[0];
     }
@@ -1108,8 +1127,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::const_iterator
-    VectorBase::end() const
+    template <typename number, typename node>
+    VectorBase<number,node>::const_iterator
+    VectorBase<number,node>::end() const
     {
       return (*vector)[0]+local_size();
     }
@@ -1117,8 +1137,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::reinit (const VectorBase &v,
+    VectorBase<number,node>::reinit (const VectorBase<node,number> &v,
                         const bool        fast)
     {
       Assert (vector.get() != 0,
@@ -1128,20 +1149,21 @@ namespace TrilinosWrappers
 
       if (fast == false ||
           vector_partitioner().SameAs(v.vector_partitioner())==false)
-        vector.reset (new Tpetra::MultiVector<TrilinosScalar,local_dof_index,
+        vector.reset (new Tpetra::MultiVector<number,local_dof_index,
                       global_dof_index,node>(*v.vector));
 
       if (fast == false ||
           nonlocal_vector_partitioner().SameAs(v.nonlocal_vector_partitioner())==false)
-        nonlocal_vector.reset(new Tpetra::MultiVector<TrilinosScalar,local_dof_index,
+        nonlocal_vector.reset(new Tpetra::MultiVector<number,local_dof_index,
                               global_dof_index,node>(v.nonlocal_vector->getMap(), 1));
     }
 
 
 
     inline
-    VectorBase &
-    VectorBase::operator = (const TrilinosScalar s)
+    template <typename number, typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator = (const number s)
     {
       Assert (numbers::is_finite(s), ExcNumberNotFinite());
 
@@ -1155,9 +1177,10 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::set (const std::vector<size_type>      &indices,
-                     const std::vector<TrilinosScalar>  &values)
+    VectorBase<number,node>::set (const std::vector<size_type>      &indices,
+                     const std::vector<number>  &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1168,9 +1191,10 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::set (const std::vector<size_type>           &indices,
-                     const ::dealii::Vector<TrilinosScalar> &values)
+    VectorBase<number,node>::set (const std::vector<size_type>           &indices,
+                     const ::dealii::Vector<number> &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1181,10 +1205,11 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::set (const size_type       n_elements,
+    VectorBase::<number,node>set (const size_type       n_elements,
                      const size_type      *indices,
-                     const TrilinosScalar *values)
+                     const number *values)
     {
       for (size_type i=0; i<n_elements; ++i)
         {
@@ -1204,9 +1229,10 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::add (const std::vector<size_type>      &indices,
-                     const std::vector<TrilinosScalar>  &values)
+    VectorBase<number,node>::add (const std::vector<size_type>      &indices,
+                     const std::vector<number>  &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1217,9 +1243,10 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::add (const std::vector<size_type>           &indices,
-                     const ::dealii::Vector<TrilinosScalar> &values)
+    VectorBase<number,node>::add (const std::vector<size_type>           &indices,
+                     const ::dealii::Vector<number> &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1230,10 +1257,11 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::add (const size_type       n_elements,
+    VectorBase<number,node>::add (const size_type       n_elements,
                      const size_type      *indices,
-                     const TrilinosScalar *values)
+                     const number *values)
     {
       for (size_type i=0; i<n_elements; ++i)
         {
@@ -1260,8 +1288,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::size_type
-    VectorBase::size () const
+    template <typename number, typename node>
+    VectorBase<number,node>::size_type
+    VectorBase<number,node>::size () const
     {
       return vector->getMap().getMaxAllGlobalIndex() + 1 - vector->getMap().getMinAllGlobalIndex();
     }
@@ -1269,8 +1298,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::size_type
-    VectorBase::local_size () const
+    template <typename number, typename node>
+    VectorBase<number,node>::size_type
+    VectorBase<number,node>::local_size () const
     {
       return vector->getMap().getNodeNumElements();
     }
@@ -1278,8 +1308,9 @@ namespace TrilinosWrappers
 
 
     inline
-    std::pair<VectorBase::size_type, VectorBase::size_type>
-    VectorBase::local_range () const
+    template <typename number, typename node>
+    std::pair<VectorBase<number,node>::size_type, VectorBase<number,node>::size_type>
+    VectorBase<number,node>::local_range () const
     {
       const size begin = vector->getMap().getMinLocalIndex();
       const size end = vector->getMap().getMaxLocalIndex();
@@ -1295,15 +1326,16 @@ namespace TrilinosWrappers
 
 
     inline
-    TrilinosScalar
-    VectorBase::operator * (const VectorBase &vec) const
+    template <typename number, typename node>
+    number
+    VectorBase<number,node>::operator * (const VectorBase<number,node> &vec) const
     {
       Assert (vector->getMap().isSameAs(vec.vector->getMap()),
               ExcDifferentParallelPartitioning());
       Assert (!has_ghost_elements(), ExcGhostsPresent());
 
-      TrilinosScalar result(0.);
-      Teuchos::ArrayView<TrilinosScalar> result_view(&result,1);
+      number result(0.);
+      Teuchos::ArrayView<number> result_view(&result,1);
 
       vector->dot(*(vec.vector), result_view);
 
@@ -1313,23 +1345,25 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::real_type
-    VectorBase::norm_sqr () const
+    template <typename number, typename node>
+    VectorBase<number,node>::real_type
+    VectorBase<number,node>::norm_sqr () const
     {
-      const TrilinosScalar d = l2_norm();
+      const number d = l2_norm();
       return d*d;
     }
 
 
 
     inline
-    TrilinosScalar
-    VectorBase::mean_value () const
+    template <typename number, typename node>
+    number
+    VectorBase<number,node>::mean_value () const
     {
       Assert (!has_ghost_elements(), ExcGhostsPresent());
 
-      TrilinosScalar mean(0.);
-      Teuchos::ArrayView<TrilinosScalar> mean_view(&mean,1);
+      number mean(0.);
+      Teuchos::ArrayView<number> mean_view(&mean,1);
       vector->meanValue (mean_view);
 
       return mean;
@@ -1338,13 +1372,14 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::real_type
-    VectorBase::l1_norm () const
+    template <typename number, typename node>
+    VectorBase<number,node>::real_type
+    VectorBase<number,node>::l1_norm () const
     {
       Assert (!has_ghost_elements(), ExcGhostsPresent());
 
-      TrilinosScalar d(0.);
-      Teuchos::ArrayView<TrilinosScalar> d_view(&d,1);
+      number d(0.);
+      Teuchos::ArrayView<number> d_view(&d,1);
       vector->norm1 (d_view);
 
       return d;
@@ -1353,13 +1388,14 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::real_type
-    VectorBase::l2_norm () const
+    template <typename number, typename node>
+    VectorBase<number,node>::real_type
+    VectorBase<number,node>::l2_norm () const
     {
       Assert (!has_ghost_elements(), ExcGhostsPresent());
 
-      TrilinosScalar d(0.);
-      Teuchos::ArrayView<TrilinosScalar> d_view(&d,1);
+      number d(0.);
+      Teuchos::ArrayView<number> d_view(&d,1);
       vector->norm2 (d_view);
 
       return d;
@@ -1368,23 +1404,24 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::real_type
-    VectorBase::lp_norm (const TrilinosScalar p) const
+    template <typename number, typename node>
+    VectorBase<number,node>::real_type
+    VectorBase<number,node>::lp_norm (const number p) const
     {
       Assert (!has_ghost_elements(), ExcGhostsPresent());
 
       // loop over all the elements because
       // Trilinos does not support lp norms
       // Because Tpetra does not support operator[], we need a view
-      TrilinosScalar norm = 0;
-      TrilinosScalar sum=0;
+      number norm = 0;
+      number sum=0;
       const size_type n_local = local_size();
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector->get1dView();
+      Teuchos::ArrayRCP<number> vector_view = vector->get1dView();
 
       for (size_type i=0; i<n_local; i++)
         sum += std::pow(std::fabs(vector_view[i]), p);
 
-      norm = std::pow(sum, static_cast<TrilinosScalar>(1./p));
+      norm = std::pow(sum, static_cast<number>(1./p));
 
       return norm;
     }
@@ -1392,16 +1429,17 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase::real_type
-    VectorBase::linfty_norm () const
+    template <typename number, typename node>
+    VectorBase<number,node>::real_type
+    VectorBase<number,node>::linfty_norm () const
     {
       // while we disallow the other
       // norm operations on ghosted
       // vectors, this particular norm
       // is safe to run even in the
       // presence of ghost elements
-      TrilinosScalar d(0.);
-      Teuchos::ArrayView<TrilinosScalar> d_view( *&d,1);
+      number d(0.);
+      Teuchos::ArrayView<number> d_view( *&d,1);
       vector->NormInf (d_view);
 
       return d;
@@ -1415,8 +1453,9 @@ namespace TrilinosWrappers
     // call. This reduces the overhead of the
     // wrapper class.
     inline
-    VectorBase &
-    VectorBase::operator *= (const TrilinosScalar a)
+    template <typename number, typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator *= (const number a)
     {
       Assert (numbers::is_finite(a), ExcNumberNotFinite());
 
@@ -1431,12 +1470,13 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase &
-    VectorBase::operator /= (const TrilinosScalar a)
+    template <typename number, typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator /= (const number a)
     {
       Assert (numbers::is_finite(a), ExcNumberNotFinite());
 
-      const TrilinosScalar factor = 1./a;
+      const number factor = 1./a;
 
       Assert (numbers::is_finite(factor), ExcNumberNotFinite());
 
@@ -1451,8 +1491,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase &
-    VectorBase::operator += (const VectorBase &v)
+    template <typename number, typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator += (const VectorBase &v)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch(size(), v.size()));
@@ -1470,8 +1511,9 @@ namespace TrilinosWrappers
 
 
     inline
-    VectorBase &
-    VectorBase::operator -= (const VectorBase &v)
+    template <typename number, typename node>
+    VectorBase<number,node> &
+    VectorBase<number,node>::operator -= (const VectorBase &v)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch(size(), v.size()));
@@ -1489,12 +1531,13 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::add (const TrilinosScalar s)
+    VectorBase<number,node>::add (const number s)
     {
       Assert (numbers::is_finite(s), ExcNumberNotFinite());
 
-      Teuchos::ArrayRCP<TrilinosScalar> vector_view = vector->get1dView();
+      Teuchos::ArrayRCP<number> vector_view = vector->get1dView();
       size_type n_local = local_size();
       for (size_type i=0; i<n_local; i++)
         vector_view[i] += s;
@@ -1506,8 +1549,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::add (const TrilinosScalar  a,
+    VectorBase<number,node>::add (const number  a,
                      const VectorBase     &v)
     {
       Assert (local_size() == v.local_size(),
@@ -1524,10 +1568,11 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::add (const TrilinosScalar  a,
+    VectorBase<number,node>::add (const number  a,
                      const VectorBase     &v,
-                     const TrilinosScalar  b,
+                     const number  b,
                      const VectorBase     &w)
     {
       Assert (local_size() == v.local_size(),
@@ -1547,8 +1592,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::sadd (const TrilinosScalar  s,
+    VectorBase<number,node>::sadd (const number  s,
                       const VectorBase     &v)
     {
       Assert (size() == v.size(),
@@ -1572,9 +1618,10 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::sadd (const TrilinosScalar  s,
-                      const TrilinosScalar  a,
+    VectorBase<number,node>::sadd (const number  s,
+                      const number  a,
                       const VectorBase     &v)
     {
       Assert (size() == v.size(),
@@ -1600,11 +1647,12 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::sadd (const TrilinosScalar  s,
-                      const TrilinosScalar  a,
+    VectorBase<number,node>::sadd (const number  s,
+                      const number  a,
                       const VectorBase     &v,
-                      const TrilinosScalar  b,
+                      const number  b,
                       const VectorBase     &w)
     {
       Assert (size() == v.size(),
@@ -1640,13 +1688,14 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::sadd (const TrilinosScalar  s,
-                      const TrilinosScalar  a,
+    VectorBase<number,node>::sadd (const number  s,
+                      const number  a,
                       const VectorBase     &v,
-                      const TrilinosScalar  b,
+                      const number  b,
                       const VectorBase     &w,
-                      const TrilinosScalar  c,
+                      const number  c,
                       const VectorBase     &x)
     {
       Assert (size() == v.size(),
@@ -1696,8 +1745,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::scale (const VectorBase &factors)
+    VectorBase<number,node>::scale (const VectorBase &factors)
     {
       Assert (local_size() == factors.local_size(),
               ExcDimensionMismatch(local_size(), factors.local_size()));
@@ -1712,8 +1762,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::equ (const TrilinosScalar  a,
+    VectorBase<number,node>::equ (const number  a,
                      const VectorBase     &v)
     {
       Assert (numbers::is_finite(a), ExcNumberNotFinite());
@@ -1734,10 +1785,11 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::equ (const TrilinosScalar  a,
+    VectorBase<number,node>::equ (const number  a,
                      const VectorBase     &v,
-                     const TrilinosScalar  b,
+                     const number  b,
                      const VectorBase     &w)
     {
       Assert (v.local_size() == w.local_size(),
@@ -1768,8 +1820,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     void
-    VectorBase::ratio (const VectorBase &v,
+    VectorBase<number,node>::ratio (const VectorBase &v,
                        const VectorBase &w)
     {
       Assert (v.local_size() == w.local_size(),
@@ -1789,7 +1842,8 @@ namespace TrilinosWrappers
 
 
     inline
-    const Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,
+    template <typename number, typename node>
+    const Tpetra::MultiVector<number,local_dof_index,global_dof_index,
           node> &
           VectorBase::trilinos_vector () const
     {
@@ -1799,7 +1853,8 @@ namespace TrilinosWrappers
 
 
     inline
-    Tpetra::MultiVector<TrilinosScalar,local_dof_index,global_dof_index,node> &
+    template <typename number, typename node>
+    Tpetra::MultiVector<number,local_dof_index,global_dof_index,node> &
     VectorBase::trilinos_vector ()
     {
       return *vector;
@@ -1808,6 +1863,7 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     const Tpetra::Map<local_dof_index,global_dof_index,node> &
     VectorBase::vector_partitioner () const
     {
@@ -1817,8 +1873,9 @@ namespace TrilinosWrappers
 
 
     inline
+    template <typename number, typename node>
     const MPI_Comm &
-    VectorBase::get_mpi_communicator () const
+    VectorBase<number,node>::get_mpi_communicator () const
     {
       static MPI_Comm comm;
 
