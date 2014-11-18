@@ -14,9 +14,11 @@
 //
 // ---------------------------------------------------------------------
 
+#ifdef DEAL_II_WITH_PARALUTION
+
 #include <deal.II/lac/paralution_precondition.h>
 
-#ifdef DEAL_II_WITH_PARALUTION
+#include <deal.II/base/exception.h>
 
 DEAL_II_NAMESPACE_OPEN
 
@@ -91,7 +93,7 @@ namespace ParalutionWrappers
   {
     // Downcast the preconditioner pointer to use SetRelaxation
     paralution::MultiColoredGS<paralution::LocalMatrix<Number>,paralution::
-    LocalVector<Number>,Number>* downcasted_ptr = static_cast<paralution::
+    LocalVector<Number>,Number> *downcasted_ptr = static_cast<paralution::
                                                   MultiColoredGS<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
                                                   Number>* >(this->preconditioner.get());
 
@@ -128,7 +130,7 @@ namespace ParalutionWrappers
   {
     // Downcast the preconditioner pointer to use Set
     paralution::ILU<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-               Number>* downcasted_ptr = static_cast<paralution::ILU<paralution::
+               Number> *downcasted_ptr = static_cast<paralution::ILU<paralution::
                                          LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     downcasted_ptr->Set(additional_data.levels);
@@ -175,7 +177,7 @@ namespace ParalutionWrappers
   {
     // Downcast the preconditioner pointer to use Set
     paralution::ILUT<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-               Number>* downcasted_ptr = static_cast<paralution::ILUT<paralution::
+               Number> *downcasted_ptr = static_cast<paralution::ILUT<paralution::
                                          LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     if (additional_data.max_row==0)
@@ -217,7 +219,7 @@ namespace ParalutionWrappers
   {
     // Downcast the preconditioner pointer to use Set
     paralution::MultiColoredILU<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-               Number>* downcasted_ptr = static_cast<paralution::MultiColoredILU<paralution::
+               Number> *downcasted_ptr = static_cast<paralution::MultiColoredILU<paralution::
                                          LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     downcasted_ptr->Set(additional_data.levels,additional_data.power);
@@ -277,7 +279,7 @@ namespace ParalutionWrappers
   {
     // Downcast the preconditioner pointer
     paralution::AMG<paralution::LocalMatrix<Number>,paralution::LocalVector<Number>,
-               Number>* downcasted_ptr = static_cast<paralution::AMG<paralution::
+               Number> *downcasted_ptr = static_cast<paralution::AMG<paralution::
                                          LocalMatrix<Number>,paralution::LocalVector<Number>,Number>* >(this->preconditioner.get());
 
     // Set the maximum number of iterations.

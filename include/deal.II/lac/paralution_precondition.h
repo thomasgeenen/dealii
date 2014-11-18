@@ -393,6 +393,12 @@ namespace ParalutionWrappers
      * This function changes the value of additional flags.
      */
     void initialize (const AdditionalData &additional_data = AdditionalData());
+
+  private :
+    /**
+     * Store a copy of the flags for this particular preconditioner.
+     */
+    AdditionalData additional_data;
   };
 
   /**
@@ -500,9 +506,16 @@ namespace ParalutionWrappers
     void clear();
 
     /**
-     * Coarse grid solver.
+     * Store a copy of the flags for this
+     * particular preconditioner.
      */
     AdditionalData additional_data;
+
+    /**
+     * Coarse grid solver.
+     */
+    paralution::IterativeLinearSolver<paralution::LocalMatrix<Number>,
+               paralution::LocalVector<Number>,Number> *coarse_solver;
   };
 }
 

@@ -272,13 +272,6 @@ namespace ParalutionWrappers
     // of the vector
     AssertThrow (out, ExcIO());
   }
-
-
-  template <typename Number>
-  void Vector<Number>::swap(Vector<Number> &v)
-  {
-    std::swap(&local_vector, &(v.paralution_vector()));
-  }
 }
 
 // Explicit instantiations

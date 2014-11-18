@@ -195,7 +195,7 @@ namespace ParalutionWrappers
   /* ---------------------- SolverDPCG ----------------------- */
 
   SolverDPCG::AdditionalData::AdditionalData(const unsigned int verbose,
-                                             const const unsigned int n_deflated_vectors)
+                                             const unsigned int n_deflated_vectors)
     :
     verbose (verbose),
     n_deflated_vectors(n_deflated_vectors)
@@ -477,13 +477,13 @@ namespace ParalutionWrappers
     paralution::IterativeLinearSolver<paralution::LocalMatrix<Number>,
                paralution::LocalVector<Number>,Number> **smoothers = NULL;
     smoothers = new paralution::IterativeLinearSolver<paralution::LocalMatrix<Number>,
-    paralution::LocalVector<Number>,Number>* [n_levels-1];
+    paralution::LocalVector<Number>,Number> *[n_levels-1];
 
     // Preconditioner for each smoother
     paralution::Preconditioner<paralution::LocalMatrix<Number>,
                paralution::LocalVector<Number>,Number> **preconds = NULL;
     preconds = new paralution::Preconditioner<paralution::LocalMatrix<Number>,
-    paralution::LocalVector<Number>,Number>* [n_levels-1];
+    paralution::LocalVector<Number>,Number> *[n_levels-1];
 
     // Coarse Grid Solver
     paralution::IterativeLinearSolver<paralution::LocalMatrix<Number>,
@@ -819,87 +819,24 @@ namespace ParalutionWrappers
 // Explicit instantiations
 namespace ParalutionWrappers
 {
-  template void SolverCG::solve<float>(SparseMatrix<float>     &A,
-                                       Vector<float>           &x,
-                                       Vector<float>           &b,
-                                       PreconditionBase<float> &preconditioner,
-                                       bool                     move_to_accelerator);
-
-  template void SolverCG::solve<double>(SparseMatrix<double>     &A,
-                                        Vector<double>           &x,
-                                        Vector<double>           &b,
-                                        PreconditionBase<double> &preconditioner,
-                                        bool                      move_to_accelerator);
-
-  template void SolverCR::solve<float>(SparseMatrix<float>     &A,
-                                       Vector<float>           &x,
-                                       Vector<float>           &b,
-                                       PreconditionBase<float> &preconditioner,
-                                       bool                     move_to_accelerator);
-
-  template void SolverCR::solve<double>(SparseMatrix<double>     &A,
-                                        Vector<double>           &x,
-                                        Vector<double>           &b,
-                                        PreconditionBase<double> &preconditioner,
-                                        bool                      move_to_accelerator);
-
-  template void SolverDPCG::solve<float>(SparseMatrix<float>     &A,
-                                         Vector<float>           &x,
-                                         Vector<float>           &b,
-                                         PreconditionBase<float> &preconditioner,
-                                         bool                     move_to_accelerator);
-
-  template void SolverDPCG::solve<double>(SparseMatrix<double>     &A,
-                                          Vector<double>           &x,
-                                          Vector<double>           &b,
-                                          PreconditionBase<double> &preconditioner,
-                                          bool                      move_to_accelerator);
-
-  template void SolverBicgstab::solve<float>(SparseMatrix<float>     &A,
-                                             Vector<float>           &x,
-                                             Vector<float>           &b,
-                                             PreconditionBase<float> &preconditioner,
-                                             bool                     move_to_accelerator);
-
-  template void SolverBicgstab::solve<double>(SparseMatrix<double>     &A,
-                                              Vector<double>           &x,
-                                              Vector<double>           &b,
-                                              PreconditionBase<double> &preconditioner,
-                                              bool                      move_to_accelerator);
-
-  template void SolverGMRES::solve<float>(SparseMatrix<float>     &A,
-                                          Vector<float>           &x,
-                                          Vector<float>           &b,
-                                          PreconditionBase<float> &preconditioner,
-                                          bool                     move_to_accelerator);
-
-  template void SolverGMRES::solve<double>(SparseMatrix<double>     &A,
-                                           Vector<double>           &x,
-                                           Vector<double>           &b,
-                                           PreconditionBase<double> &preconditioner,
-                                           bool                      move_to_accelerator);
-
-  template void SolverFGMRES::solve<float>(SparseMatrix<float>     &A,
-                                           Vector<float>           &x,
-                                           Vector<float>           &b,
-                                           PreconditionBase<float> &preconditioner,
-                                           bool                     move_to_accelerator);
-
-  template void SolverFGMRES::solve<double>(SparseMatrix<double>     &A,
-                                            Vector<double>           &x,
-                                            Vector<double>           &b,
-                                            PreconditionBase<double> &preconditioner,
-                                            bool                      move_to_accelerator);
-
-  template void SolverAMG::solve<float>(SparseMatrix<float> &A,
-                                        Vector<float>       &x,
-                                        Vector<float>       &b,
-                                        bool                 move_to_accelerator);
-
-  template void SolverAMG::solve<double>(SparseMatrix<double> &A,
-                                         Vector<double>       &x,
-                                         Vector<double>       &b,
-                                         bool                  move_to_accelerator);
+  template class PreconditionBase<float>;
+  template class PreconditionBase<double>;
+  template class PreconditionJacobi<float>;
+  template class PreconditionJacobi<double>;
+  template class PreconditionSGS<float>;
+  template class PreconditionSGS<double>;
+  template class PreconditionMultiColoredSGS<float>;
+  template class PreconditionMultiColoredSGS<double>;
+  template class PreconditionMultiColoredSOR<float>;
+  template class PreconditionMultiColoredSOR<double>;
+  template class PreconditionILU<float>;
+  template class PreconditionILU<double>;
+  template class PreconditionILUT<float>;
+  template class PreconditionILUT<double>;
+  template class PreconditionMultiColoredILU<float>;
+  template class PreconditionMultiColoredILU<double>;
+  template class PreconditionAMG<float>;
+  template class PreconditionAMG<double>;
 }
 
 DEAL_II_NAMESPACE_CLOSE

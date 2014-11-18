@@ -187,12 +187,12 @@ namespace ParalutionWrappers
     /**
      * Set all components of the vector to the given number s.
      */
-    Vector<Number>& operator= (const Number s);
+    Vector<Number> &operator= (const Number s);
 
     /**
      * Copy the given vector in the present one. Resize if necessary.
      */
-    Vector<Number>& operator= (const Vector<Number> &v);
+    Vector<Number> &operator= (const Vector<Number> &v);
 
     /**
      * Mean value of the elements of this vector.
@@ -289,13 +289,13 @@ namespace ParalutionWrappers
      * Return a constant reference to the underlying Paralution LocalVector
      * class.
      */
-    const paralution::LocalVector<Number>& paralution_vector() const;
+    const paralution::LocalVector<Number> &paralution_vector() const;
 
     /**
      * Return a (modifiable) reference to the underlying Paralution
      * LocalVector class.
      */
-    paralution::LocalVector<Number>& paralution_vector();
+    paralution::LocalVector<Number> &paralution_vector();
     //@}
 
     /**
@@ -305,12 +305,12 @@ namespace ParalutionWrappers
     /**
      * Add the given vector to the present one.
      */
-    Vector<Number>& operator+= (const Vector<Number> &v);
+    Vector<Number> &operator+= (const Vector<Number> &v);
 
     /**
      * Substract the given vector from the present one.
      */
-    Vector<Number>& operator-= (const Vector<Number> &v);
+    Vector<Number> &operator-= (const Vector<Number> &v);
 
     /**
      * A collective add operation: This function adds a whole set of values
@@ -388,12 +388,12 @@ namespace ParalutionWrappers
     /**
      * Scale each element of the vector by a constant value.
      */
-    Vector<Number>& operator*= (const Number factor);
+    Vector<Number> &operator*= (const Number factor);
 
     /**
      * Scale each element of the vector by the inverse of the given value.
      */
-    Vector<Number>& operator/= (const Number factor);
+    Vector<Number> &operator/= (const Number factor);
 
     /**
      * Assignement <tt>*this = a*u</tt>.
@@ -463,16 +463,6 @@ namespace ParalutionWrappers
      * is used.
      */
     void sync();
-
-    /**
-     * Swap the contents of this vector and the other vector @p v. One could
-     * do this operation with a temporary variable and copying over the data
-     * elements, but this function is significantly more efficient since it
-     * only swaps the pointers to the data of the two vectors and therefore
-     * does not need to allocate temporary storage and move data around. Note
-     * that the vectors need to be of the same size and base on the same map.
-     */
-    void swap (Vector<Number> &v);
 
     /**
      * Determine an estimate for the memory consumption (in bytes) of this
@@ -588,7 +578,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>& Vector<Number>::operator= (const Number s)
+  inline Vector<Number> &Vector<Number>::operator= (const Number s)
   {
     Assert(numbers::is_finite(s),ExcNumberNotFinite());
 
@@ -600,7 +590,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>& Vector<Number>::operator= (const Vector<Number> &v)
+  inline Vector<Number> &Vector<Number>::operator= (const Vector<Number> &v)
   {
     local_vector.CopyFrom(v.paralution_vector());
 
@@ -708,7 +698,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline paralution::LocalVector<Number>& Vector<Number>::paralution_vector()
+  inline paralution::LocalVector<Number> &Vector<Number>::paralution_vector()
   {
     return local_vector;
   }
@@ -716,7 +706,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>& Vector<Number>::operator+= (Vector<Number> const &v)
+  inline Vector<Number> &Vector<Number>::operator+= (Vector<Number> const &v)
   {
     Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
 
@@ -728,7 +718,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>& Vector<Number>::operator-= (Vector<Number> const &v)
+  inline Vector<Number> &Vector<Number>::operator-= (Vector<Number> const &v)
   {
     Assert(size()==v.size(),ExcDimensionMismatch(size(),v.size()));
 
@@ -740,7 +730,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>& Vector<Number>::operator*= (const Number factor)
+  inline Vector<Number> &Vector<Number>::operator*= (const Number factor)
   {
     Assert(numbers::is_finite(factor),ExcNumberNotFinite());
 
@@ -752,7 +742,7 @@ namespace ParalutionWrappers
 
 
   template <typename Number>
-  inline Vector<Number>& Vector<Number>::operator/= (const Number factor)
+  inline Vector<Number> &Vector<Number>::operator/= (const Number factor)
   {
     Assert(numbers::is_finite(factor),ExcNumberNotFinite());
 
