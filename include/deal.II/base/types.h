@@ -177,9 +177,9 @@ namespace TrilinosWrappers
 
     /**
      * Declare type of the local ordering used by the Tpetra package of
-     * Trilinos.
+     * Trilinos. It must be a signed type.
      */
-    typedef unsigned int local_dof_index;
+    typedef int local_dof_index;
   }
 }
 
