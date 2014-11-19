@@ -304,9 +304,8 @@ namespace TrilinosWrappers
        *
        * @dealiiRequiresTrilinosView
        */
-      template <typename Number>
       VectorBase &
-      operator = (const ::dealii::Vector<Number> &v);
+      operator = (const ::dealii::parallel::distributed::Vector<number> &v);
 
       /**
        * TODO should we compare the nonlocal vector too ?
@@ -844,6 +843,7 @@ namespace TrilinosWrappers
 
     private:
       /**
+       * TODO: still exist ?
        * Trilinos doesn't allow to mix additions to matrix entries and
        * overwriting them (to make synchronisation of parallel computations
        * simpler). The way we do it is to, for each access operation, store
@@ -918,7 +918,7 @@ namespace TrilinosWrappers
       inline
       template <typename number>
       VectorReference<number>::VectorReference (VectorBase<number,node> &vector,
-                                                      const size_type          index)
+                                                const size_type          index)
         :
         vector (vector),
         index (index)
@@ -1071,7 +1071,7 @@ namespace TrilinosWrappers
     inline
     template <typename number, typename node>
     void VectorBase<number,node>::extract_subvector_to (const std::vector<size_type> &indices,
-                                           std::vector<number>  &values) const
+                                                        std::vector<number>  &values) const
     {
       for (size_type i = 0; i < indices.size(); ++i)
         values[i] = operator()(indices[i]);
@@ -1083,8 +1083,8 @@ namespace TrilinosWrappers
     inline
     template <typename number, typename node>
     void VectorBase<number,node>::extract_subvector_to (ForwardIterator          indices_begin,
-                                           const ForwardIterator    indices_end,
-                                           OutputIterator           values_begin) const
+                                                        const ForwardIterator    indices_end,
+                                                        OutputIterator           values_begin) const
     {
       while (indices_begin != indices_end)
         {
@@ -1140,7 +1140,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::reinit (const VectorBase<node,number> &v,
-                        const bool        fast)
+                                     const bool        fast)
     {
       Assert (vector.get() != 0,
               ExcMessage("Vector has not been constructed properly."));
@@ -1180,7 +1180,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::set (const std::vector<size_type>      &indices,
-                     const std::vector<number>  &values)
+                                  const std::vector<number>  &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1194,7 +1194,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::set (const std::vector<size_type>           &indices,
-                     const ::dealii::Vector<number> &values)
+                                  const ::dealii::Vector<number> &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1208,8 +1208,8 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase::<number,node>set (const size_type       n_elements,
-                     const size_type      *indices,
-                     const number *values)
+                                  const size_type      *indices,
+                                  const number *values)
     {
       for (size_type i=0; i<n_elements; ++i)
         {
@@ -1232,7 +1232,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::add (const std::vector<size_type>      &indices,
-                     const std::vector<number>  &values)
+                                  const std::vector<number>  &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1246,7 +1246,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::add (const std::vector<size_type>           &indices,
-                     const ::dealii::Vector<number> &values)
+                                  const ::dealii::Vector<number> &values)
     {
       Assert (indices.size() == values.size(),
               ExcDimensionMismatch(indices.size(),values.size()));
@@ -1260,8 +1260,8 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::add (const size_type       n_elements,
-                     const size_type      *indices,
-                     const number *values)
+                                  const size_type      *indices,
+                                  const number *values)
     {
       for (size_type i=0; i<n_elements; ++i)
         {
@@ -1552,7 +1552,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::add (const number  a,
-                     const VectorBase     &v)
+                                  const VectorBase     &v)
     {
       Assert (local_size() == v.local_size(),
               ExcDimensionMismatch(local_size(), v.local_size()));
@@ -1571,9 +1571,9 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::add (const number  a,
-                     const VectorBase     &v,
-                     const number  b,
-                     const VectorBase     &w)
+                                  const VectorBase     &v,
+                                  const number  b,
+                                  const VectorBase     &w)
     {
       Assert (local_size() == v.local_size(),
               ExcDimensionMismatch(local_size(), v.local_size()));
@@ -1595,7 +1595,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::sadd (const number  s,
-                      const VectorBase     &v)
+                                   const VectorBase     &v)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch (size(), v.size()));
@@ -1621,8 +1621,8 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::sadd (const number  s,
-                      const number  a,
-                      const VectorBase     &v)
+                                   const number  a,
+                                   const VectorBase     &v)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch (size(), v.size()));
@@ -1650,10 +1650,10 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::sadd (const number  s,
-                      const number  a,
-                      const VectorBase     &v,
-                      const number  b,
-                      const VectorBase     &w)
+                                   const number  a,
+                                   const VectorBase     &v,
+                                   const number  b,
+                                   const VectorBase     &w)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch (size(), v.size()));
@@ -1691,12 +1691,12 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::sadd (const number  s,
-                      const number  a,
-                      const VectorBase     &v,
-                      const number  b,
-                      const VectorBase     &w,
-                      const number  c,
-                      const VectorBase     &x)
+                                   const number  a,
+                                   const VectorBase     &v,
+                                   const number  b,
+                                   const VectorBase     &w,
+                                   const number  c,
+                                   const VectorBase     &x)
     {
       Assert (size() == v.size(),
               ExcDimensionMismatch (size(), v.size()));
@@ -1765,7 +1765,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::equ (const number  a,
-                     const VectorBase     &v)
+                                  const VectorBase     &v)
     {
       Assert (numbers::is_finite(a), ExcNumberNotFinite());
 
@@ -1788,9 +1788,9 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::equ (const number  a,
-                     const VectorBase     &v,
-                     const number  b,
-                     const VectorBase     &w)
+                                  const VectorBase     &v,
+                                  const number  b,
+                                  const VectorBase     &w)
     {
       Assert (v.local_size() == w.local_size(),
               ExcDimensionMismatch (v.local_size(), w.local_size()));
@@ -1823,7 +1823,7 @@ namespace TrilinosWrappers
     template <typename number, typename node>
     void
     VectorBase<number,node>::ratio (const VectorBase &v,
-                       const VectorBase &w)
+                                    const VectorBase &w)
     {
       Assert (v.local_size() == w.local_size(),
               ExcDimensionMismatch (v.local_size(), w.local_size()));
