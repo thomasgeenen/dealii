@@ -14,11 +14,11 @@
 //
 // ---------------------------------------------------------------------
 
-#ifdef DEAL_II_WITH_PARALUTION
-
 #include <deal.II/lac/paralution_precondition.h>
 
-#include <deal.II/base/exception.h>
+#ifdef DEAL_II_WITH_PARALUTION
+
+#include <deal.II/base/exceptions.h>
 
 DEAL_II_NAMESPACE_OPEN
 
