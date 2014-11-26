@@ -837,6 +837,11 @@ namespace ParalutionWrappers
   template class PreconditionMultiColoredILU<double>;
   template class PreconditionAMG<float>;
   template class PreconditionAMG<double>;
+  template void SolverCG::solve(const SparseMatrix<double> &,
+                       Vector<double>                 &,
+                       const Vector<double>           &,
+                       const PreconditionBase<double> &,
+                       bool);
 }
 
 DEAL_II_NAMESPACE_CLOSE
