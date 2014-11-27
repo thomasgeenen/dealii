@@ -81,6 +81,13 @@
 // quite nicely adapted grids for a wide class of problems.
 #include <deal.II/numerics/error_estimator.h>
 
+
+// setup the Paralution stuff
+#include <deal.II/lac/paralution_sparse_matrix.h>
+#include <deal.II/lac/paralution_vector.h>
+#include <deal.II/lac/paralution_solver.h>
+#include <deal.II/lac/paralution_precondition.h>
+
 // Finally, this is as in previous programs:
 using namespace dealii;
 
@@ -120,10 +127,10 @@ private:
   ConstraintMatrix     constraints;
 
   SparsityPattern      sparsity_pattern;
-  SparseMatrix<double> system_matrix;
+  ParalutionWrappers::SparseMatrix<double> system_matrix;
 
-  Vector<double>       solution;
-  Vector<double>       system_rhs;
+  ParalutionWrappers::Vector<double>       solution;
+  ParalutionWrappers::Vector<double>       system_rhs;
 };
 
 
@@ -477,11 +484,11 @@ void Step6<dim>::assemble_system ()
 template <int dim>
 void Step6<dim>::solve ()
 {
+  system_matrix.convert_to_paralution_csr();
   SolverControl      solver_control (1000, 1e-12);
-  SolverCG<>         solver (solver_control);
-
-  PreconditionSSOR<> preconditioner;
-  preconditioner.initialize(system_matrix, 1.2);
+  ParalutionWrappers::SolverCG         solver (solver_control);
+  ParalutionWrappers::SolverCG::AdditionalData      data(true);
+  ParalutionWrappers::PreconditionJacobi<double> preconditioner;
 
   solver.solve (system_matrix, solution, system_rhs,
                 preconditioner);
@@ -753,8 +760,15 @@ int main ()
     {
       deallog.depth_console (0);
 
+      paralution::init_paralution();
+      paralution::set_omp_threads_paralution(16);
+      paralution::info_paralution();
+
+
       Step6<2> laplace_problem_2d;
       laplace_problem_2d.run ();
+
+      paralution::stop_paralution();
     }
   // ...and if this should fail, try to gather as much information as
   // possible. Specifically, if the exception that was thrown is an object of
