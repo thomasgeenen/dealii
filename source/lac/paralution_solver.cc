@@ -819,29 +819,45 @@ namespace ParalutionWrappers
 // Explicit instantiations
 namespace ParalutionWrappers
 {
-  template class PreconditionBase<float>;
-  template class PreconditionBase<double>;
-  template class PreconditionJacobi<float>;
-  template class PreconditionJacobi<double>;
-  template class PreconditionSGS<float>;
-  template class PreconditionSGS<double>;
-  template class PreconditionMultiColoredSGS<float>;
-  template class PreconditionMultiColoredSGS<double>;
-  template class PreconditionMultiColoredSOR<float>;
-  template class PreconditionMultiColoredSOR<double>;
-  template class PreconditionILU<float>;
-  template class PreconditionILU<double>;
-  template class PreconditionILUT<float>;
-  template class PreconditionILUT<double>;
-  template class PreconditionMultiColoredILU<float>;
-  template class PreconditionMultiColoredILU<double>;
-  template class PreconditionAMG<float>;
-  template class PreconditionAMG<double>;
+  template void SolverRichardson::solve(const SparseMatrix<double> &,
+                                        Vector<double> &,
+                                        const Vector<double> &,
+                                        const PreconditionBase<double> &,
+                                        bool);
   template void SolverCG::solve(const SparseMatrix<double> &,
-                       Vector<double>                 &,
-                       const Vector<double>           &,
-                       const PreconditionBase<double> &,
-                       bool);
+                                Vector<double> &,
+                                const Vector<double> &,
+                                const PreconditionBase<double> &,
+                                bool);
+  template void SolverCR::solve(const SparseMatrix<double> &,
+                                Vector<double> &,
+                                const Vector<double> &,
+                                const PreconditionBase<double> &,
+                                bool);
+  template void SolverDPCG::solve(const SparseMatrix<double> &,
+                                  Vector<double> &,
+                                  const Vector<double> &,
+                                  const PreconditionBase<double> &,
+                                  bool);
+  template void SolverBicgstab::solve(const SparseMatrix<double> &,
+                                      Vector<double> &,
+                                      const Vector<double> &,
+                                      const PreconditionBase<double> &,
+                                      bool);
+  template void SolverGMRES::solve(const SparseMatrix<double> &,
+                                   Vector<double> &,
+                                   const Vector<double> &,
+                                   const PreconditionBase<double> &,
+                                   bool);
+  template void SolverFGMRES::solve(const SparseMatrix<double> &,
+                                    Vector<double> &,
+                                    const Vector<double> &,
+                                    const PreconditionBase<double> &,
+                                    bool);
+  template void SolverAMG::solve(SparseMatrix<double> &,
+                                 Vector<double> &,
+                                 Vector<double> &,
+                                 bool);
 }
 
 DEAL_II_NAMESPACE_CLOSE
